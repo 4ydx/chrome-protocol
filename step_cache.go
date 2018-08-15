@@ -34,6 +34,8 @@ func (ac *StepCache) GetId() int64 {
 
 func (ac *StepCache) SetResult(m cdproto.Message) int64 {
 	ac.Lock()
+	defer ac.Unlock()
+
 	err := ac.Step.Returns.UnmarshalJSON(m.Result)
 	if err != nil {
 		log.Fatal("Unmarshal error:", err)
@@ -42,7 +44,6 @@ func (ac *StepCache) SetResult(m cdproto.Message) int64 {
 	log.Printf("    : %+v\n", ac.Step.Params)
 	log.Printf("    : %+v\n", ac.Step.Returns)
 	id := ac.Step.ActionId
-	ac.Unlock()
 
 	return id
 }
