@@ -52,7 +52,7 @@ func GetWebsocket() *websocket.Conn {
 	return c
 }
 
-func Read(c *websocket.Conn, stepComplete chan<- int64, as *StepCache, shutdown chan<- struct{}) {
+func Read(c *websocket.Conn, stepComplete chan<- int64, sc *StepCache, shutdown chan<- struct{}) {
 	defer func() {
 		log.Println("Shutdown due to socket connection going away.")
 		close(shutdown)
@@ -70,20 +70,18 @@ func Read(c *websocket.Conn, stepComplete chan<- int64, as *StepCache, shutdown 
 		if err != nil {
 			log.Fatal("Unmarshal error:", err)
 		}
-		if step, ok := as.Get(m.ID); ok {
-			err := step.Returns.UnmarshalJSON(m.Result)
-			if err != nil {
-				log.Fatal("Unmarshal error:", err)
+		if m.ID == sc.GetId() {
+			stepComplete <- sc.SetResult(m)
+		} else {
+			if m.Method == "Page.frameStartedLoading" {
 			}
-			stepComplete <- step.ActionId
-			log.Printf(".RES: %+v\n", step)
-			log.Printf("    : %+v\n", step.Params)
-			log.Printf("    : %+v\n", step.Returns)
+			if m.Method == "Page.frameNavigated" {
+			}
 		}
 	}
 }
 
-func Write(c *websocket.Conn, actions <-chan *Action, as *StepCache, shutdown, allComplete <-chan struct{}) {
+func Write(c *websocket.Conn, actions <-chan *Action, sc *StepCache, shutdown, allComplete <-chan struct{}) {
 	osInterrupt := make(chan os.Signal, 1)
 	signal.Notify(osInterrupt, os.Interrupt)
 
@@ -93,7 +91,7 @@ func Write(c *websocket.Conn, actions <-chan *Action, as *StepCache, shutdown, a
 			fmt.Println("shutdown")
 			return
 		case action := <-actions:
-			as.Add(action.Step())
+			sc.Set(action.Step())
 
 			log.Printf("!REQ: %s\n", action.ToJSON())
 			err := c.WriteMessage(websocket.TextMessage, action.ToJSON())

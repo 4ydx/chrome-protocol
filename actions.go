@@ -17,7 +17,8 @@ type Step struct {
 	Params  json.Marshaler   `json:"params"`
 	Returns json.Unmarshaler `json:"-"`
 
-	Timeout time.Duration `json:"-"`
+	Timeout    time.Duration `json:"-"`
+	OnComplete func()        `json:"-"`
 }
 
 type Action struct {
@@ -82,14 +83,10 @@ func (act *Action) ToJSON() []byte {
 	return j
 }
 
-func (act *Action) Wait(stepComplete <-chan int64) {
+func (act *Action) Wait(actions chan<- *Action, stepComplete <-chan int64) {
 	for {
 		select {
 		case <-time.After(Wait):
-			if act.IsComplete() {
-				log.Printf("Action %d completed.", act.Id)
-				return
-			}
 			if act.StepTimeout() {
 				log.Fatalf("Action %+v step timeout %+v\n", act, act.Step())
 			}
@@ -102,6 +99,12 @@ func (act *Action) Wait(stepComplete <-chan int64) {
 			log.Printf("Step %d complete", act.Steps[act.StepIndex].Id)
 			act.StepIndex++
 			act.Unlock()
+
+			if act.IsComplete() {
+				log.Printf("Action %d completed.", act.Id)
+				return
+			}
+			actions <- act
 		}
 	}
 }

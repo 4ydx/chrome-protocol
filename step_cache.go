@@ -1,35 +1,48 @@
 package main
 
 import (
+	"github.com/chromedp/cdproto"
 	"log"
 	"sync"
 )
 
-type StepId int64
-
 type StepCache struct {
 	*sync.RWMutex
-	Map map[StepId]*Step
+	*Step
 }
 
 func NewStepCache() *StepCache {
 	cache := &StepCache{
 		RWMutex: &sync.RWMutex{},
-		Map:     make(map[StepId]*Step),
 	}
 	return cache
 }
 
-func (ac *StepCache) Add(a *Step) {
+func (ac *StepCache) Set(s *Step) {
 	ac.Lock()
-	log.Printf("Add action %+v\n", a)
-	ac.Map[StepId(a.Id)] = a
+	log.Printf("Set step %+v\n", s)
+	ac.Step = s
 	ac.Unlock()
 }
 
-func (ac *StepCache) Get(id int64) (*Step, bool) {
+func (ac *StepCache) GetId() int64 {
 	ac.Lock()
-	a, ok := ac.Map[StepId(id)]
+	id := ac.Step.Id
 	ac.Unlock()
-	return a, ok
+	return id
+}
+
+func (ac *StepCache) SetResult(m cdproto.Message) int64 {
+	ac.Lock()
+	err := ac.Step.Returns.UnmarshalJSON(m.Result)
+	if err != nil {
+		log.Fatal("Unmarshal error:", err)
+	}
+	log.Printf(".RES: %+v\n", ac.Step)
+	log.Printf("    : %+v\n", ac.Step.Params)
+	log.Printf("    : %+v\n", ac.Step.Returns)
+	id := ac.Step.ActionId
+	ac.Unlock()
+
+	return id
 }

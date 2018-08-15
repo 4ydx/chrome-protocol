@@ -56,11 +56,16 @@ func main() {
 
 	var process Actions
 	process.Add(
-		NewAction([]*Step{&Step{Id: id.GetNext(), Method: lg.CommandEnable, Params: &lg.EnableParams{}, Returns: &lg.EnableReturns{}, Timeout: time.Second * 3}}),
+		NewAction([]*Step{
+			&Step{Id: id.GetNext(), Method: lg.CommandEnable, Params: &lg.EnableParams{}, Returns: &lg.EnableReturns{}, Timeout: time.Second * 3},
+			&Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: time.Second * 3},
+		}),
 	)
-	process.Add(
-		NewAction([]*Step{&Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: time.Second * 3}}),
-	)
+	/*
+		process.Add(
+			NewAction([]*Step{&Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: time.Second * 3}}),
+		)
+	*/
 	process.Add(
 		NewAction([]*Step{
 			&Step{
@@ -69,6 +74,8 @@ func main() {
 				Params:  &page.NavigateParams{URL: "https://google.com"},
 				Returns: &page.NavigateReturns{},
 				Timeout: time.Second * 10,
+				OnComplete: func() {
+				},
 			},
 		}),
 	)
@@ -87,7 +94,7 @@ func main() {
 	//Action{Id: id.GetNext(), Method: browser.CommandClose, Wait: time.Second * 5},
 	for i := 0; i < len(process); i++ {
 		actions <- process[i]
-		process[i].Wait(stepComplete)
+		process[i].Wait(actions, stepComplete)
 	}
 	log.Print("All completed.")
 	allComplete <- struct{}{}
