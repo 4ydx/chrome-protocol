@@ -58,12 +58,16 @@ func main() {
 	}
 
 	var acts Actions
+
+	// Tell Chrome Devtools Protocol what data to send
 	acts.Add(
 		NewAction([]Event{}, []Step{
 			Step{Id: id.GetNext(), Method: lg.CommandEnable, Params: &lg.EnableParams{}, Returns: &lg.EnableReturns{}, Timeout: time.Second * 3},
 			Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: time.Second * 3},
 		}),
 	)
+
+	// Navigate to a url, waiting for the page to stop loading
 	acts.Add(
 		NewAction(
 			[]Event{
@@ -71,13 +75,7 @@ func main() {
 				Event{Name: cdproto.EventPageFrameStoppedLoading, Value: &page.EventFrameStoppedLoading{}, IsRequired: true},
 			},
 			[]Step{
-				Step{
-					Id:      id.GetNext(),
-					Method:  page.CommandNavigate,
-					Params:  &page.NavigateParams{URL: "https://google.com"},
-					Returns: &page.NavigateReturns{},
-					Timeout: time.Second * 10,
-				},
+				Step{Id: id.GetNext(), Method: page.CommandNavigate, Params: &page.NavigateParams{URL: "https://google.com"}, Returns: &page.NavigateReturns{}, Timeout: time.Second * 10},
 			}),
 	)
 
