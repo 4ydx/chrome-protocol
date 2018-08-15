@@ -8,7 +8,7 @@ import (
 
 type StepCache struct {
 	*sync.RWMutex
-	*Step
+	Step
 }
 
 func NewStepCache() *StepCache {
@@ -18,7 +18,7 @@ func NewStepCache() *StepCache {
 	return cache
 }
 
-func (ac *StepCache) Set(s *Step) {
+func (ac *StepCache) Set(s Step) {
 	ac.Lock()
 	log.Printf("Set step %+v\n", s)
 	ac.Step = s

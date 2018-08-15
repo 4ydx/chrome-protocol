@@ -45,10 +45,12 @@ func main() {
 	actions := make(chan *Action)
 	stepComplete := make(chan int64)
 	allComplete := make(chan struct{})
-	cache := NewStepCache()
 
-	go Write(c, actions, cache, shutdown, allComplete)
-	go Read(c, stepComplete, cache, shutdown)
+	stepCache := NewStepCache()
+	eventCache := NewEventCache()
+
+	go Write(c, actions, stepCache, shutdown, allComplete)
+	go Read(c, stepComplete, stepCache, eventCache, shutdown)
 
 	id := &ID{
 		RWMutex: &sync.RWMutex{},
@@ -57,27 +59,18 @@ func main() {
 
 	var acts Actions
 	acts.Add(
-		NewAction([]*Event{}, []*Step{
-			&Step{Id: id.GetNext(), Method: lg.CommandEnable, Params: &lg.EnableParams{}, Returns: &lg.EnableReturns{}, Timeout: time.Second * 3},
-			&Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: time.Second * 3},
+		NewAction([]Event{}, []Step{
+			Step{Id: id.GetNext(), Method: lg.CommandEnable, Params: &lg.EnableParams{}, Returns: &lg.EnableReturns{}, Timeout: time.Second * 3},
+			Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: time.Second * 3},
 		}),
 	)
 	acts.Add(
 		NewAction(
-			[]*Event{
-				&Event{
-					Name:       cdproto.EventPageFrameStartedLoading,
-					Returns:    &page.EventFrameStartedLoading{},
-					IsRequired: true,
-				},
-				&Event{
-					Name:       cdproto.EventPageFrameStoppedLoading,
-					Returns:    &page.EventFrameStoppedLoading{},
-					IsRequired: true,
-				},
+			[]Event{
+				Event{Name: cdproto.EventPageFrameStartedLoading, Returns: &page.EventFrameStartedLoading{}, IsRequired: true},
 			},
-			[]*Step{
-				&Step{
+			[]Step{
+				Step{
 					Id:      id.GetNext(),
 					Method:  page.CommandNavigate,
 					Params:  &page.NavigateParams{URL: "https://google.com"},
@@ -102,18 +95,19 @@ func main() {
 	//Action{Id: id.GetNext(), Method: browser.CommandClose, Wait: time.Second * 5},
 
 	for i := 0; i < len(acts); i++ {
+		eventCache.Load(acts[i].Events)
 		actions <- acts[i]
 		acts[i].Wait(actions, stepComplete)
+		eventCache.Log()
 	}
-	log.Print("All completed.")
+	log.Print("\n-- All completed --\n")
 	for _, act := range acts {
 		log.Printf("Act %+v\n", act)
-		for _, step := range act.Steps {
-			log.Printf("Step Params %+v", step.Params)
-			log.Printf("Step Return %+v", step.Returns)
+		for i, step := range act.Steps {
+			log.Printf("Step %d Params %+v", i, step.Params)
+			log.Printf("Step %d Return %+v", i, step.Returns)
 		}
 	}
-	time.Sleep(5 * time.Second)
 	allComplete <- struct{}{}
 	<-shutdown
 }

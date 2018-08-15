@@ -31,8 +31,8 @@ type Step struct {
 type Action struct {
 	*sync.RWMutex
 	Id        int64
-	Events    []*Event
-	Steps     []*Step
+	Events    []Event
+	Steps     []Step
 	StepIndex int
 	Start     *time.Time
 }
@@ -47,7 +47,7 @@ func (acts *Actions) Add(action *Action) {
 	*acts = append(*acts, action)
 }
 
-func NewAction(events []*Event, steps []*Step) *Action {
+func NewAction(events []Event, steps []Step) *Action {
 	return &Action{
 		RWMutex: &sync.RWMutex{},
 		Events:  events,
@@ -56,17 +56,23 @@ func NewAction(events []*Event, steps []*Step) *Action {
 }
 
 func (act *Action) IsComplete() bool {
-	complete := true
-
 	act.RLock()
+	defer act.RUnlock()
+
+	return act.StepIndex == len(act.Steps)
+}
+
+func (act *Action) EventsComplete() bool {
+	act.RLock()
+	defer act.RUnlock()
+
+	complete := true
 	for _, e := range act.Events {
 		if e.IsRequired && !e.IsFound {
 			complete = false
 		}
 	}
-	b := act.StepIndex == len(act.Steps)
-	act.RUnlock()
-	return b && complete
+	return complete
 }
 
 func (act *Action) StepTimeout() bool {
@@ -80,7 +86,7 @@ func (act *Action) StepTimeout() bool {
 	return b
 }
 
-func (act *Action) Step() *Step {
+func (act *Action) Step() Step {
 	act.Lock()
 	if act.Start == nil {
 		t := time.Now()
@@ -103,7 +109,7 @@ func (act *Action) Wait(actions chan<- *Action, stepComplete <-chan int64) {
 	for {
 		select {
 		case <-time.After(Wait):
-			if act.StepTimeout() {
+			if !act.IsComplete() && act.StepTimeout() {
 				log.Fatalf("Action %+v step timeout %+v\n", act, act.Step())
 			}
 			log.Print("waiting...")
@@ -112,15 +118,18 @@ func (act *Action) Wait(actions chan<- *Action, stepComplete <-chan int64) {
 			if id != act.Id {
 				log.Fatalf("Mismatched id %d != %d\n", id, act.Id)
 			}
-			log.Printf("Step %d complete", act.Steps[act.StepIndex].Id)
+			log.Printf("Step %d complete with %+v", act.Steps[act.StepIndex].Id, act.Steps[act.StepIndex].Returns)
 			act.StepIndex++
 			act.Unlock()
 
+			if !act.IsComplete() {
+				actions <- act
+			}
+			//if act.IsComplete() && act.EventsComplete() {
 			if act.IsComplete() {
 				log.Printf("Action %d completed.", act.Id)
 				return
 			}
-			actions <- act
 		}
 	}
 }
