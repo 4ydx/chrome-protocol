@@ -67,7 +67,11 @@ func main() {
 	acts.Add(
 		NewAction(
 			[]Event{
-				Event{Name: cdproto.EventPageFrameStartedLoading, Returns: &page.EventFrameStartedLoading{}, IsRequired: true},
+				Event{
+					Name:       cdproto.EventPageFrameStartedLoading,
+					Value:      &page.EventFrameStartedLoading{},
+					IsRequired: true,
+				},
 			},
 			[]Step{
 				Step{
@@ -97,7 +101,7 @@ func main() {
 	for i := 0; i < len(acts); i++ {
 		eventCache.Load(acts[i].Events)
 		actions <- acts[i]
-		acts[i].Wait(actions, stepComplete)
+		acts[i].Wait(actions, eventCache, stepComplete)
 		eventCache.Log()
 	}
 	log.Print("\n-- All completed --\n")

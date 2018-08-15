@@ -25,7 +25,7 @@ func (ec *EventCache) Log() {
 
 	for _, event := range ec.Events {
 		log.Printf("Event %+v\n", event)
-		log.Printf("Event Return %+v", event.Returns)
+		log.Printf("Event Value %+v", event.Value)
 	}
 }
 
@@ -52,21 +52,37 @@ func (ec *EventCache) HasEvent(name cdproto.MethodType) (*Event, bool) {
 	return e, ok
 }
 
+func (ec *EventCache) EventsComplete() bool {
+	ec.RLock()
+	defer ec.RUnlock()
+
+	complete := true
+	for _, e := range ec.Events {
+		if e.IsRequired && !e.IsFound {
+			complete = false
+		}
+	}
+	return complete
+}
+
 func (ec *EventCache) SetResult(name cdproto.MethodType, m cdproto.Message) {
 	ec.Lock()
 	defer ec.Unlock()
 
-	/*
-		if e, ok := ec.Events[name]; ok {
-			err := e.Returns.UnmarshalJSON(m.Result)
+	if e, ok := ec.Events[name]; ok {
+		err := e.Value.UnmarshalJSON(m.Params)
+		if err != nil {
+			log.Printf("Unmarshal error: %s; for %+v; from %+v", err.Error(), e.Value, m)
+			err = e.Value.UnmarshalJSON(m.Result)
 			if err != nil {
-				log.Fatal("Unmarshal error:", err)
+				log.Printf("Unmarshal error: %s; for %+v; from %+v", err.Error(), e.Value, m)
+				return
 			}
-			e.IsFound = true
-			ec.Events[name] = e
-
-			log.Printf(".RES: %+v\n", e)
-			log.Printf("    : %+v\n", e.Returns)
 		}
-	*/
+		e.IsFound = true
+		ec.Events[name] = e
+
+		log.Printf(".RES: %+v\n", e)
+		log.Printf("    : %+v\n", e.Value)
+	}
 }
