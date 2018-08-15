@@ -9,6 +9,14 @@ import (
 
 var Wait = time.Millisecond * 50
 
+type Event struct {
+	Name       string
+	Returns    json.Unmarshaler
+	IsRequired bool
+	IsFound    bool
+	OnEvent    func(Event) // Callback for accessing the event
+}
+
 type Step struct {
 	ActionId int64 `json:"-"`
 
@@ -17,13 +25,13 @@ type Step struct {
 	Params  json.Marshaler   `json:"params"`
 	Returns json.Unmarshaler `json:"-"`
 
-	Timeout    time.Duration `json:"-"`
-	OnComplete func()        `json:"-"`
+	Timeout time.Duration `json:"-"`
 }
 
 type Action struct {
 	*sync.RWMutex
 	Id        int64
+	Events    []*Event
 	Steps     []*Step
 	StepIndex int
 	Start     *time.Time
@@ -39,18 +47,26 @@ func (acts *Actions) Add(action *Action) {
 	*acts = append(*acts, action)
 }
 
-func NewAction(steps []*Step) *Action {
+func NewAction(events []*Event, steps []*Step) *Action {
 	return &Action{
 		RWMutex: &sync.RWMutex{},
+		Events:  events,
 		Steps:   steps,
 	}
 }
 
 func (act *Action) IsComplete() bool {
+	complete := true
+
 	act.RLock()
+	for _, e := range act.Events {
+		if e.IsRequired && !e.IsFound {
+			complete = false
+		}
+	}
 	b := act.StepIndex == len(act.Steps)
 	act.RUnlock()
-	return b
+	return b && complete
 }
 
 func (act *Action) StepTimeout() bool {

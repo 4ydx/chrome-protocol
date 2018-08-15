@@ -73,10 +73,7 @@ func Read(c *websocket.Conn, stepComplete chan<- int64, sc *StepCache, shutdown 
 		if m.ID == sc.GetId() {
 			stepComplete <- sc.SetResult(m)
 		} else {
-			if m.Method == "Page.frameStartedLoading" {
-			}
-			if m.Method == "Page.frameNavigated" {
-			}
+			// Check for events related to the current Action
 		}
 	}
 }

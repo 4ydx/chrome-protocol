@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/chromedp/cdproto"
 	lg "github.com/chromedp/cdproto/log"
 	"github.com/chromedp/cdproto/page"
 	"log"
@@ -56,24 +57,36 @@ func main() {
 
 	var acts Actions
 	acts.Add(
-		NewAction([]*Step{
+		NewAction([]*Event{}, []*Step{
 			&Step{Id: id.GetNext(), Method: lg.CommandEnable, Params: &lg.EnableParams{}, Returns: &lg.EnableReturns{}, Timeout: time.Second * 3},
 			&Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: time.Second * 3},
 		}),
 	)
 	acts.Add(
-		NewAction([]*Step{
-			&Step{
-				Id:      id.GetNext(),
-				Method:  page.CommandNavigate,
-				Params:  &page.NavigateParams{URL: "https://google.com"},
-				Returns: &page.NavigateReturns{},
-				Timeout: time.Second * 10,
-				OnComplete: func() {
+		NewAction(
+			[]*Event{
+				&Event{
+					Name:       cdproto.EventPageFrameStartedLoading,
+					Returns:    &page.EventFrameStartedLoading{},
+					IsRequired: true,
+				},
+				&Event{
+					Name:       cdproto.EventPageFrameStoppedLoading,
+					Returns:    &page.EventFrameStoppedLoading{},
+					IsRequired: true,
 				},
 			},
-		}),
+			[]*Step{
+				&Step{
+					Id:      id.GetNext(),
+					Method:  page.CommandNavigate,
+					Params:  &page.NavigateParams{URL: "https://google.com"},
+					Returns: &page.NavigateReturns{},
+					Timeout: time.Second * 10,
+				},
+			}),
 	)
+
 	//Action{Id: id.GetNext(), Method: runtime.CommandEnable, Wait: time.Second * 0},
 	//Action{Id: id.GetNext(), Method: inspector.CommandEnable, Wait: time.Second * 0},
 	//Action{Id: id.GetNext(), Method: page.CommandEnable, Wait: time.Second * 0},
@@ -87,11 +100,20 @@ func main() {
 	//Action{Id: id.GetNext(), Method: dom.CommandPerformSearch, Params: dom.PerformSearchParams{Query: "#login_form_2 input[name='Email']"}, Wait: time.Second * 10},
 
 	//Action{Id: id.GetNext(), Method: browser.CommandClose, Wait: time.Second * 5},
+
 	for i := 0; i < len(acts); i++ {
 		actions <- acts[i]
 		acts[i].Wait(actions, stepComplete)
 	}
 	log.Print("All completed.")
+	for _, act := range acts {
+		log.Printf("Act %+v\n", act)
+		for _, step := range act.Steps {
+			log.Printf("Step Params %+v", step.Params)
+			log.Printf("Step Return %+v", step.Returns)
+		}
+	}
+	time.Sleep(5 * time.Second)
 	allComplete <- struct{}{}
 	<-shutdown
 }
