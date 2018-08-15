@@ -63,19 +63,22 @@ func Read(c *websocket.Conn, stepComplete chan<- int64, as *StepCache, shutdown 
 			log.Println("Read error:", err)
 			return
 		}
-		log.Printf(".RES: %s\n\n", message)
+		log.Printf(".RAW: %s\n", message)
 
 		m := cdproto.Message{}
 		err = m.UnmarshalJSON(message)
 		if err != nil {
 			log.Fatal("Unmarshal error:", err)
 		}
-		log.Printf("..RES: %+v\n\n", m)
-
 		if step, ok := as.Get(m.ID); ok {
-			step.Returns.UnmarshalJSON(message)
+			err := step.Returns.UnmarshalJSON(m.Result)
+			if err != nil {
+				log.Fatal("Unmarshal error:", err)
+			}
 			stepComplete <- step.ActionId
-			log.Printf("...RES: %+v\n\n", step)
+			log.Printf(".RES: %+v\n", step)
+			log.Printf("    : %+v\n", step.Params)
+			log.Printf("    : %+v\n", step.Returns)
 		}
 	}
 }

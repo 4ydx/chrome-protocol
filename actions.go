@@ -87,7 +87,7 @@ func (act *Action) Wait(stepComplete <-chan int64) {
 		select {
 		case <-time.After(Wait):
 			if act.IsComplete() {
-				log.Print("Action completed.")
+				log.Printf("Action %d completed.", act.Id)
 				return
 			}
 			if act.StepTimeout() {
@@ -99,9 +99,9 @@ func (act *Action) Wait(stepComplete <-chan int64) {
 			if id != act.Id {
 				log.Fatalf("Mismatched id %d != %d\n", id, act.Id)
 			}
+			log.Printf("Step %d complete", act.Steps[act.StepIndex].Id)
 			act.StepIndex++
 			act.Unlock()
-			log.Print("stepcomplete")
 		}
 	}
 }
