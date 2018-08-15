@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/chromedp/cdproto"
+	"github.com/chromedp/cdproto/dom"
 	lg "github.com/chromedp/cdproto/log"
 	"github.com/chromedp/cdproto/page"
 	"log"
@@ -10,7 +11,6 @@ import (
 	"time"
 	//"github.com/chromedp/cdproto/browser"
 	//"github.com/chromedp/cdproto/css"
-	//"github.com/chromedp/cdproto/dom"
 	//"github.com/chromedp/cdproto/inspector"
 	//"github.com/chromedp/cdproto/runtime"
 	//"github.com/chromedp/cdproto/network"
@@ -64,6 +64,7 @@ func main() {
 		NewAction([]Event{}, []Step{
 			Step{Id: id.GetNext(), Method: lg.CommandEnable, Params: &lg.EnableParams{}, Returns: &lg.EnableReturns{}, Timeout: time.Second * 3},
 			Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: time.Second * 3},
+			Step{Id: id.GetNext(), Method: dom.CommandEnable, Params: &dom.EnableParams{}, Returns: &dom.EnableReturns{}, Timeout: time.Second * 3},
 		}),
 	)
 
@@ -79,10 +80,10 @@ func main() {
 			}),
 	)
 
+	// TODO: Searching the DOM - will have to have a way to pass values between steps...
+
 	//Action{Id: id.GetNext(), Method: runtime.CommandEnable, Wait: time.Second * 0},
 	//Action{Id: id.GetNext(), Method: inspector.CommandEnable, Wait: time.Second * 0},
-	//Action{Id: id.GetNext(), Method: page.CommandEnable, Wait: time.Second * 0},
-	//Action{Id: id.GetNext(), Method: dom.CommandEnable, Wait: time.Second * 0},
 	//Action{Id: id.GetNext(), Method: css.CommandEnable, Wait: time.Second * 0},
 	//Action{Id: id.GetNext(), Method: network.CommandEnable, Wait: time.Second * 0},
 
