@@ -54,19 +54,14 @@ func main() {
 		Value:   11111,
 	}
 
-	var process Actions
-	process.Add(
+	var acts Actions
+	acts.Add(
 		NewAction([]*Step{
 			&Step{Id: id.GetNext(), Method: lg.CommandEnable, Params: &lg.EnableParams{}, Returns: &lg.EnableReturns{}, Timeout: time.Second * 3},
 			&Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: time.Second * 3},
 		}),
 	)
-	/*
-		process.Add(
-			NewAction([]*Step{&Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: time.Second * 3}}),
-		)
-	*/
-	process.Add(
+	acts.Add(
 		NewAction([]*Step{
 			&Step{
 				Id:      id.GetNext(),
@@ -92,9 +87,9 @@ func main() {
 	//Action{Id: id.GetNext(), Method: dom.CommandPerformSearch, Params: dom.PerformSearchParams{Query: "#login_form_2 input[name='Email']"}, Wait: time.Second * 10},
 
 	//Action{Id: id.GetNext(), Method: browser.CommandClose, Wait: time.Second * 5},
-	for i := 0; i < len(process); i++ {
-		actions <- process[i]
-		process[i].Wait(actions, stepComplete)
+	for i := 0; i < len(acts); i++ {
+		actions <- acts[i]
+		acts[i].Wait(actions, stepComplete)
 	}
 	log.Print("All completed.")
 	allComplete <- struct{}{}
