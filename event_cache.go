@@ -8,13 +8,13 @@ import (
 
 type EventCache struct {
 	*sync.RWMutex
-	Events map[cdproto.MethodType]*Event
+	Events map[cdproto.MethodType]Event
 }
 
 func NewEventCache() *EventCache {
 	cache := &EventCache{
 		RWMutex: &sync.RWMutex{},
-		Events:  make(map[cdproto.MethodType]*Event),
+		Events:  make(map[cdproto.MethodType]Event),
 	}
 	return cache
 }
@@ -23,9 +23,9 @@ func (ec *EventCache) Log() {
 	ec.RLock()
 	defer ec.RUnlock()
 
-	for _, event := range ec.Events {
-		log.Printf("Event %+v\n", event)
-		log.Printf("Event Value %+v", event.Value)
+	for i, event := range ec.Events {
+		log.Printf("Event %d %+v\n", i, event)
+		log.Printf("Event %d Value %+v", i, event.Value)
 	}
 }
 
@@ -33,23 +33,18 @@ func (ec *EventCache) Load(events []Event) {
 	ec.Lock()
 	defer ec.Unlock()
 
-	ec.Events = make(map[cdproto.MethodType]*Event)
+	ec.Events = make(map[cdproto.MethodType]Event)
 	for _, e := range events {
-		ec.Events[cdproto.MethodType(e.Name)] = &e
+		log.Printf("Loading event %s", e.Name)
+		ec.Events[cdproto.MethodType(e.Name)] = e
 	}
 }
 
-func (ec *EventCache) Add(s *Event) {
+func (ec *EventCache) HasEvent(name cdproto.MethodType) bool {
 	ec.Lock()
-	ec.Events[cdproto.MethodType(s.Name)] = s
+	_, ok := ec.Events[name]
 	ec.Unlock()
-}
-
-func (ec *EventCache) HasEvent(name cdproto.MethodType) (*Event, bool) {
-	ec.Lock()
-	e, ok := ec.Events[name]
-	ec.Unlock()
-	return e, ok
+	return ok
 }
 
 func (ec *EventCache) EventsComplete() bool {
@@ -82,6 +77,7 @@ func (ec *EventCache) SetResult(name cdproto.MethodType, m cdproto.Message) {
 		e.IsFound = true
 		ec.Events[name] = e
 
+		log.Printf(".SET: %s %+v\n", name, m)
 		log.Printf(".RES: %+v\n", e)
 		log.Printf("    : %+v\n", e.Value)
 	}

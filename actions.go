@@ -103,7 +103,7 @@ func (act *Action) Wait(actions chan<- *Action, ec *EventCache, stepComplete <-c
 				log.Printf("Action %d completed.", act.Id)
 				return
 			}
-			log.Printf("Action %+v waiting...", act)
+			log.Printf("Action %d waiting...", act.Id)
 		case id := <-stepComplete:
 			act.Lock()
 			if id != act.Id {

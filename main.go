@@ -67,11 +67,8 @@ func main() {
 	acts.Add(
 		NewAction(
 			[]Event{
-				Event{
-					Name:       cdproto.EventPageFrameStartedLoading,
-					Value:      &page.EventFrameStartedLoading{},
-					IsRequired: true,
-				},
+				Event{Name: cdproto.EventPageFrameStartedLoading, Value: &page.EventFrameStartedLoading{}, IsRequired: true},
+				Event{Name: cdproto.EventPageFrameStoppedLoading, Value: &page.EventFrameStoppedLoading{}, IsRequired: true},
 			},
 			[]Step{
 				Step{

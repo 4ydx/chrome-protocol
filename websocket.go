@@ -78,7 +78,7 @@ func Read(c *websocket.Conn, stepComplete chan<- int64, sc *StepCache, ec *Event
 		} else {
 			log.Printf("Checking MethodType %s\n", m.Method)
 			// Check for events related to the current Action
-			if _, ok := ec.HasEvent(m.Method); ok {
+			if ec.HasEvent(m.Method) {
 				ec.SetResult(m.Method, m)
 			}
 		}
