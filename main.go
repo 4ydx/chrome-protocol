@@ -26,11 +26,11 @@ func Start() (*EventCache, *ID, chan *Action, chan bool, chan struct{}, chan str
 	shutdown := make(chan struct{})
 	allComplete := make(chan struct{})
 
-	stepCache := NewStepCache()
+	actionCache := NewActionCache()
 	eventCache := NewEventCache()
 
-	go Write(Conn, actionChan, stepCache, shutdown, allComplete)
-	go Read(Conn, stepChan, stepCache, eventCache, shutdown)
+	go Write(Conn, actionChan, actionCache, shutdown, allComplete)
+	go Read(Conn, stepChan, actionCache, eventCache, shutdown)
 
 	id := &ID{
 		RWMutex: &sync.RWMutex{},

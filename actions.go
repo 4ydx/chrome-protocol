@@ -52,29 +52,28 @@ func (act *Action) IsComplete() bool {
 }
 
 func (act *Action) StepTimeout() bool {
-	b := false
 	act.RLock()
+	defer act.RUnlock()
+
+	b := false
 	s := act.Steps[act.StepIndex]
 	if s.Timeout > 0 {
 		b = time.Now().After(act.Start.Add(s.Timeout))
 	}
-	act.RUnlock()
 	return b
 }
 
-func (act *Action) Step() Step {
-	act.Lock()
+func (act *Action) ToJSON() []byte {
+	act.RLock()
+	defer act.RUnlock()
+
 	if act.Start == nil {
 		t := time.Now()
 		act.Start = &t
 	}
 	s := act.Steps[act.StepIndex]
-	act.Unlock()
-	return s
-}
 
-func (act *Action) ToJSON() []byte {
-	j, err := json.Marshal(act.Step())
+	j, err := json.Marshal(s)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -86,7 +85,7 @@ func (act *Action) Wait(actions chan<- *Action, ec *EventCache, stepComplete <-c
 		select {
 		case <-time.After(Wait):
 			if !act.IsComplete() && act.StepTimeout() {
-				log.Fatalf("Action %+v step timeout %+v\n", act, act.Step())
+				log.Fatalf("Action %s step timeout\n", act.ToJSON())
 			}
 			if act.IsComplete() && ec.EventsComplete() {
 				log.Print("Action completed.")
@@ -94,11 +93,6 @@ func (act *Action) Wait(actions chan<- *Action, ec *EventCache, stepComplete <-c
 			}
 			log.Print("Action waiting...")
 		case <-stepComplete:
-			act.Lock()
-			log.Printf("Step %d complete with %+v", act.Steps[act.StepIndex].Id, act.Steps[act.StepIndex].Returns)
-			act.StepIndex++
-			act.Unlock()
-
 			if !act.IsComplete() {
 				actions <- act
 			}

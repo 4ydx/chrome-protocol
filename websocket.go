@@ -52,7 +52,7 @@ func GetWebsocket() *websocket.Conn {
 	return c
 }
 
-func Read(c *websocket.Conn, stepComplete chan<- bool, sc *StepCache, ec *EventCache, shutdown chan<- struct{}) {
+func Read(c *websocket.Conn, stepComplete chan<- bool, ac *ActionCache, ec *EventCache, shutdown chan<- struct{}) {
 	defer func() {
 		log.Println("Shutdown due to socket connection going away.")
 		close(shutdown)
@@ -68,11 +68,10 @@ func Read(c *websocket.Conn, stepComplete chan<- bool, sc *StepCache, ec *EventC
 		if err != nil {
 			log.Fatal("Unmarshal error:", err)
 		}
-		if m.ID == sc.GetId() {
+		if ac.HasStepId(m.ID) {
 			log.Printf(".RAW: %s\n", message)
 			log.Printf(".DEC: %+v\n", m)
-			// The current step has received a result from chrome
-			sc.SetResult(m)
+			ac.SetResult(m)
 			stepComplete <- true
 		} else {
 			log.Printf("Checking MethodType %s\n", m.Method)
@@ -84,7 +83,7 @@ func Read(c *websocket.Conn, stepComplete chan<- bool, sc *StepCache, ec *EventC
 	}
 }
 
-func Write(c *websocket.Conn, actions <-chan *Action, sc *StepCache, shutdown, allComplete <-chan struct{}) {
+func Write(c *websocket.Conn, actionChan <-chan *Action, ac *ActionCache, shutdown, allComplete <-chan struct{}) {
 	osInterrupt := make(chan os.Signal, 1)
 	signal.Notify(osInterrupt, os.Interrupt)
 
@@ -93,9 +92,9 @@ func Write(c *websocket.Conn, actions <-chan *Action, sc *StepCache, shutdown, a
 		case <-shutdown:
 			log.Println("Shutdown.")
 			return
-		case action := <-actions:
+		case action := <-actionChan:
 			log.Printf("!REQ: %s\n", action.ToJSON())
-			sc.Set(action.Step())
+			ac.Set(action)
 
 			err := c.WriteMessage(websocket.TextMessage, action.ToJSON())
 			if err != nil {
