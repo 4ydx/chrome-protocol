@@ -93,7 +93,7 @@ func Write(c *websocket.Conn, actions <-chan *Action, sc *StepCache, shutdown, a
 	for {
 		select {
 		case <-shutdown:
-			fmt.Println("shutdown")
+			log.Println("Shutdown.")
 			return
 		case action := <-actions:
 			log.Printf("!REQ: %s\n", action.ToJSON())

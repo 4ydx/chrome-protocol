@@ -7,15 +7,23 @@ import (
 )
 
 // Find finds all nodes using XPath, CSS selector, or text.
-// TODO: so how to chain this together???
-//       a "step" needs to be able to reliably get a value from a previous step and then apply that value to its own params.
-func Find(actions *cdp.Action, actions []*cdp.Action, id *cdp.ID, find string, timeout time.Duration) *cdp.Action {
-	act := cdp.NewAction(
-		[]cdp.Event{},
+func Find(id *cdp.ID, find string, timeout time.Duration, eventCache *cdp.EventCache, actionChan chan<- *cdp.Action, stepChan <-chan bool) *dom.GetSearchResultsReturns {
+	// Find nodes on the page if they exist.
+	a0 := cdp.NewAction([]cdp.Event{},
 		[]cdp.Step{
-			cdp.Step{Id: id0, Method: dom.CommandPerformSearch, Params: &dom.PerformSearchParams{Query: find}, Returns: searchReturns, Timeout: timeout},
-			cdp.Step{Id: id.GetNext(), Method: dom.CommandGetSearchResults, Params: getSearchResults, Returns: &dom.GetSearchResultsReturns{}, Timeout: timeout, PreviousReturns: func() {
-				getSearchResults.SearchID = searchResults.SearchID
-			}},
+			cdp.Step{Id: id.GetNext(), Method: dom.CommandPerformSearch, Params: &dom.PerformSearchParams{Query: find}, Returns: &dom.PerformSearchReturns{}, Timeout: timeout},
 		})
+	a0.Run(eventCache, actionChan, stepChan)
+	if a0.Steps[0].Returns.(*dom.PerformSearchReturns).SearchID == "" || a0.Steps[0].Returns.(*dom.PerformSearchReturns).ResultCount == 0 {
+		return a0.Steps[0].Returns.(*dom.GetSearchResultsReturns)
+	}
+
+	// Retrieve the NodeIds.
+	a1 := cdp.NewAction([]cdp.Event{},
+		[]cdp.Step{
+			cdp.Step{Id: id.GetNext(), Method: dom.CommandGetSearchResults, Params: &dom.GetSearchResultsParams{}, Returns: &dom.GetSearchResultsReturns{}, Timeout: timeout},
+		})
+	a1.Run(eventCache, actionChan, stepChan)
+
+	return a1.Steps[0].Returns.(*dom.GetSearchResultsReturns)
 }

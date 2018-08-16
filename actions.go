@@ -111,7 +111,7 @@ func (act *Action) Wait(actions chan<- *Action, ec *EventCache, stepComplete <-c
 	}
 }
 
-func (act *Action) Run(ec *EventCache, actionChan chan<- *Action, stepComplete chan bool) {
+func (act *Action) Run(ec *EventCache, actionChan chan<- *Action, stepComplete <-chan bool) {
 	ec.Load(act.Events)
 	actionChan <- act
 	act.Wait(actionChan, ec, stepComplete)

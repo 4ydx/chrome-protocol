@@ -24,7 +24,7 @@ func main() {
 
 	shutdown := make(chan struct{})
 	actions := make(chan *cdp.Action)
-	stepComplete := make(chan int64)
+	stepComplete := make(chan bool)
 	allComplete := make(chan struct{})
 
 	stepCache := cdp.NewStepCache()
