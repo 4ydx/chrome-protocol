@@ -84,7 +84,7 @@ func (act *Action) ToJSON() []byte {
 	return j
 }
 
-func (act *Action) Wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-chan struct{}) {
+func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-chan struct{}) {
 	for {
 		select {
 		case <-time.After(Wait):
@@ -111,7 +111,7 @@ func (act *Action) Wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-c
 
 func (act *Action) Run() {
 	ActionChan <- act
-	act.Wait(ActionChan, Cache, StepChan)
+	act.wait(ActionChan, Cache, StepChan)
 }
 
 func (act *Action) Log() {
