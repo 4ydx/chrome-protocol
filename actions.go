@@ -120,8 +120,8 @@ func (act *Action) Run(ec *EventCache, actionChan chan<- *Action, stepComplete c
 
 func (act *Action) Log() {
 	log.Printf("Act %+v\n", act)
-	for i, step := range act.Steps {
-		log.Printf("Step %d Params %+v", i, step.Params)
-		log.Printf("Step %d Return %+v", i, step.Returns)
+	for _, step := range act.Steps {
+		log.Printf("Step %d Params %+v", step.Id, step.Params)
+		log.Printf("Step %d Return %+v", step.Id, step.Returns)
 	}
 }
