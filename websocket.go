@@ -3,7 +3,7 @@ package cdp
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/chromedp/cdproto"
+	"github.com/4ydx/cdproto"
 	"github.com/gorilla/websocket"
 	"io/ioutil"
 	"log"

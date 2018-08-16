@@ -1,7 +1,7 @@
 package cdp
 
 import (
-	"github.com/chromedp/cdproto"
+	"github.com/4ydx/cdproto"
 	"log"
 	"sync"
 )

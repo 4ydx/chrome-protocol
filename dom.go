@@ -1,7 +1,7 @@
 package cdp
 
 import (
-	"github.com/chromedp/cdproto/dom"
+	"github.com/4ydx/cdproto/dom"
 )
 
 type FindNodes struct {

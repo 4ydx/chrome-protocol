@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/chromedp/cdproto"
-	"github.com/chromedp/cdproto/dom"
-	lg "github.com/chromedp/cdproto/log"
-	"github.com/chromedp/cdproto/page"
+	"github.com/4ydx/cdproto/dom"
+	lg "github.com/4ydx/cdproto/log"
+	"github.com/4ydx/cdproto/page"
+	"github.com/4ydx/chrome-protocol"
+	"github.com/4ydx/chrome-protocol/actions/page"
 	"log"
 	"os"
 	"sync"
@@ -17,19 +18,6 @@ import (
 	//"github.com/gorilla/websocket"
 )
 
-type ID struct {
-	*sync.RWMutex
-	Value int64
-}
-
-func (id *ID) GetNext() int64 {
-	id.Lock()
-	id.Value += 1
-	v := id.Value
-	id.Unlock()
-	return v
-}
-
 func main() {
 	f, err := os.Create("log.txt")
 	if err != nil {
@@ -38,47 +26,51 @@ func main() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	log.SetOutput(f)
 
-	c := GetWebsocket()
+	c := cdp.GetWebsocket()
 	defer c.Close()
 
 	shutdown := make(chan struct{})
-	actions := make(chan *Action)
+	actions := make(chan *cdp.Action)
 	stepComplete := make(chan int64)
 	allComplete := make(chan struct{})
 
-	stepCache := NewStepCache()
-	eventCache := NewEventCache()
+	stepCache := cdp.NewStepCache()
+	eventCache := cdp.NewEventCache()
 
-	go Write(c, actions, stepCache, shutdown, allComplete)
-	go Read(c, stepComplete, stepCache, eventCache, shutdown)
+	go cdp.Write(c, actions, stepCache, shutdown, allComplete)
+	go cdp.Read(c, stepComplete, stepCache, eventCache, shutdown)
 
-	id := &ID{
+	id := &cdp.ID{
 		RWMutex: &sync.RWMutex{},
 		Value:   11111,
 	}
 
-	var acts Actions
+	var acts cdp.Actions
 
 	// Tell Chrome Devtools Protocol what data to send
 	acts.Add(
-		NewAction([]Event{}, []Step{
-			Step{Id: id.GetNext(), Method: lg.CommandEnable, Params: &lg.EnableParams{}, Returns: &lg.EnableReturns{}, Timeout: time.Second * 3},
-			Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: time.Second * 3},
-			Step{Id: id.GetNext(), Method: dom.CommandEnable, Params: &dom.EnableParams{}, Returns: &dom.EnableReturns{}, Timeout: time.Second * 3},
+		cdp.NewAction([]cdp.Event{}, []cdp.Step{
+			cdp.Step{Id: id.GetNext(), Method: lg.CommandEnable, Params: &lg.EnableParams{}, Returns: &lg.EnableReturns{}, Timeout: time.Second * 3},
+			cdp.Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: time.Second * 3},
+			cdp.Step{Id: id.GetNext(), Method: dom.CommandEnable, Params: &dom.EnableParams{}, Returns: &dom.EnableReturns{}, Timeout: time.Second * 3},
 		}),
 	)
 
+	acts.Add(pa.Navigate(id, "https://google.com", time.Second*5))
+
 	// Navigate to a url, waiting for the page to stop loading
-	acts.Add(
-		NewAction(
-			[]Event{
-				Event{Name: cdproto.EventPageFrameStartedLoading, Value: &page.EventFrameStartedLoading{}, IsRequired: true},
-				Event{Name: cdproto.EventPageFrameStoppedLoading, Value: &page.EventFrameStoppedLoading{}, IsRequired: true},
-			},
-			[]Step{
-				Step{Id: id.GetNext(), Method: page.CommandNavigate, Params: &page.NavigateParams{URL: "https://google.com"}, Returns: &page.NavigateReturns{}, Timeout: time.Second * 10},
-			}),
-	)
+	/*
+		acts.Add(
+			cdp.NewAction(
+				[]cdp.Event{
+					cdp.Event{Name: cdproto.EventPageFrameStartedLoading, Value: &page.EventFrameStartedLoading{}, IsRequired: true},
+					cdp.Event{Name: cdproto.EventPageFrameStoppedLoading, Value: &page.EventFrameStoppedLoading{}, IsRequired: true},
+				},
+				[]cdp.Step{
+					cdp.Step{Id: id.GetNext(), Method: page.CommandNavigate, Params: &page.NavigateParams{URL: "https://google.com"}, Returns: &page.NavigateReturns{}, Timeout: time.Second * 10},
+				}),
+		)
+	*/
 
 	// TODO: Searching the DOM - will have to have a way to pass values between steps...
 
