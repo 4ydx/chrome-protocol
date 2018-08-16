@@ -13,12 +13,17 @@ func main() {
 	id := cdp.Start()
 
 	// Enable dom and page communication with chrome
-	ea.EnableDom(id, time.Second*2).Run()
-	ea.EnablePage(id, time.Second*2).Run()
+	if err := ea.EnableDom(id, time.Second*2); err != nil {
+		panic(err)
+	}
+	if err := ea.EnablePage(id, time.Second*2); err != nil {
+		panic(err)
+	}
 
 	// Navigate
-	a0 := pa.Navigate(id, "https://google.com", time.Second*5)
-	a0.Run()
+	if err := pa.Navigate(id, "https://google.com", time.Second*5); err != nil {
+		panic(err)
+	}
 
 	// Focus
 	if err := da.Focus(id, "#lst-ib", time.Second*5); err != nil {
@@ -26,7 +31,5 @@ func main() {
 	}
 
 	log.Print("\n-- All completed --\n")
-	a0.Log()
-
 	cdp.Stop()
 }

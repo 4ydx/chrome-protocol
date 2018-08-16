@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func EnableAll(id *cdp.ID, timeout time.Duration) *cdp.Action {
+func EnableAll(id *cdp.ID, timeout time.Duration) error {
 	// Order is important.  Dom should come first.
 	return cdp.NewAction([]cdp.Event{}, []cdp.Step{
 		cdp.Step{Id: id.GetNext(), Method: dom.CommandEnable, Params: &dom.EnableParams{}, Returns: &dom.EnableReturns{}, Timeout: timeout},
@@ -23,17 +23,17 @@ func EnableAll(id *cdp.ID, timeout time.Duration) *cdp.Action {
 		cdp.Step{Id: id.GetNext(), Method: network.CommandEnable, Params: &network.EnableParams{}, Returns: &network.EnableReturns{}, Timeout: timeout},
 		cdp.Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: timeout},
 		cdp.Step{Id: id.GetNext(), Method: runtime.CommandEnable, Params: &runtime.EnableParams{}, Returns: &runtime.EnableReturns{}, Timeout: timeout},
-	})
+	}).Run()
 }
 
-func EnableDom(id *cdp.ID, timeout time.Duration) *cdp.Action {
+func EnableDom(id *cdp.ID, timeout time.Duration) error {
 	return cdp.NewAction([]cdp.Event{}, []cdp.Step{
 		cdp.Step{Id: id.GetNext(), Method: dom.CommandEnable, Params: &dom.EnableParams{}, Returns: &dom.EnableReturns{}, Timeout: timeout},
-	})
+	}).Run()
 }
 
-func EnablePage(id *cdp.ID, timeout time.Duration) *cdp.Action {
+func EnablePage(id *cdp.ID, timeout time.Duration) error {
 	return cdp.NewAction([]cdp.Event{}, []cdp.Step{
 		cdp.Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: timeout},
-	})
+	}).Run()
 }

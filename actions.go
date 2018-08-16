@@ -2,6 +2,8 @@ package cdp
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -84,16 +86,16 @@ func (act *Action) ToJSON() []byte {
 	return j
 }
 
-func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-chan struct{}) {
+func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-chan struct{}) error {
 	for {
 		select {
 		case <-time.After(Wait):
 			if !act.IsComplete() && act.StepTimeout() {
-				log.Fatalf("Action %s step timeout\n", act.ToJSON())
+				return errors.New(fmt.Sprintf("Action %s step timeout\n", act.ToJSON()))
 			}
 			if act.IsComplete() && ac.EventsComplete() {
 				log.Print("Action completed.")
-				return
+				return nil
 			}
 			log.Print("Action waiting...")
 		case <-stepChan:
@@ -102,16 +104,16 @@ func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-c
 			}
 			if act.IsComplete() && ac.EventsComplete() {
 				log.Printf("Action completed.")
-				return
+				return nil
 			}
 			log.Printf("Action waiting...")
 		}
 	}
 }
 
-func (act *Action) Run() {
+func (act *Action) Run() error {
 	ActionChan <- act
-	act.wait(ActionChan, Cache, StepChan)
+	return act.wait(ActionChan, Cache, StepChan)
 }
 
 func (act *Action) Log() {

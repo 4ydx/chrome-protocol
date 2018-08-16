@@ -8,7 +8,7 @@ import (
 )
 
 // Navigate sends the browser to the given URL
-func Navigate(id *cdp.ID, url string, timeout time.Duration) *cdp.Action {
+func Navigate(id *cdp.ID, url string, timeout time.Duration) error {
 	return cdp.NewAction(
 		[]cdp.Event{
 			cdp.Event{Name: cdproto.EventPageFrameStartedLoading, Value: &page.EventFrameStartedLoading{}, IsRequired: true},
@@ -16,5 +16,5 @@ func Navigate(id *cdp.ID, url string, timeout time.Duration) *cdp.Action {
 		},
 		[]cdp.Step{
 			cdp.Step{Id: id.GetNext(), Method: page.CommandNavigate, Params: &page.NavigateParams{URL: url}, Returns: &page.NavigateReturns{}, Timeout: timeout},
-		})
+		}).Run()
 }
