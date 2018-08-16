@@ -3,11 +3,26 @@ package da
 import (
 	"github.com/4ydx/cdproto/dom"
 	"github.com/4ydx/chrome-protocol"
+	"log"
 	"time"
 )
 
+func GetDocument(id *cdp.ID, find string, timeout time.Duration, eventCache *cdp.EventCache, actionChan chan<- *cdp.Action, stepChan <-chan bool) *dom.GetDocumentReturns {
+	// Find nodes on the page if they exist.
+	a0 := cdp.NewAction([]cdp.Event{},
+		[]cdp.Step{
+			cdp.Step{Id: id.GetNext(), Method: dom.CommandGetDocument, Params: &dom.GetDocumentParams{}, Returns: &dom.GetDocumentReturns{}, Timeout: timeout},
+		})
+	a0.Run(eventCache, actionChan, stepChan)
+
+	return a0.Steps[0].Returns.(*dom.GetDocumentReturns)
+}
+
 // FindAll finds all nodes using XPath, CSS selector, or text.
 func FindAll(id *cdp.ID, find string, timeout time.Duration, eventCache *cdp.EventCache, actionChan chan<- *cdp.Action, stepChan <-chan bool) *dom.GetSearchResultsReturns {
+	doc := GetDocument(id, find, timeout, eventCache, actionChan, stepChan)
+	log.Printf("Doc %+v", doc)
+
 	// Find nodes on the page if they exist.
 	a0 := cdp.NewAction([]cdp.Event{},
 		[]cdp.Step{
@@ -21,6 +36,7 @@ func FindAll(id *cdp.ID, find string, timeout time.Duration, eventCache *cdp.Eve
 	}
 
 	// Retrieve the NodeIds.
+	log.Printf("Using search id %s with result count %d", ret.SearchID, ret.ResultCount)
 	params := &dom.GetSearchResultsParams{
 		SearchID:  ret.SearchID,
 		FromIndex: 0,

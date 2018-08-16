@@ -23,16 +23,13 @@ func main() {
 	a2.Run(eventCache, actionChan, stepChan)
 
 	// FindAll objects matching the given string
-	res0 := da.FindAll(id, "lst-ib", time.Second*5, eventCache, actionChan, stepChan)
-	res1 := da.FindAll(id, "hplogo", time.Second*5, eventCache, actionChan, stepChan)
+	res0 := da.FindAll(id, "#lst-ib", time.Second*5, eventCache, actionChan, stepChan)
 
 	log.Print("\n-- All completed --\n")
 	a0.Log()
 	a1.Log()
 	a2.Log()
 	log.Printf("res0 %+v\n", res0)
-	log.Printf("res1 %+v\n", res1)
 
-	time.Sleep(time.Second * 10)
 	cdp.Stop(allComplete, shutdown)
 }

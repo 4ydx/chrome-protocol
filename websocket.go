@@ -70,7 +70,7 @@ func Read(c *websocket.Conn, stepComplete chan<- bool, sc *StepCache, ec *EventC
 		if err != nil {
 			log.Fatal("Unmarshal error:", err)
 		}
-		log.Printf(".RAW: %+v\n", m)
+		log.Printf(".DEC: %+v\n", m)
 
 		if m.ID == sc.GetId() {
 			// The current step has received a result from chrome
