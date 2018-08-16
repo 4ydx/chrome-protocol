@@ -52,7 +52,7 @@ func GetWebsocket() *websocket.Conn {
 	return c
 }
 
-func Read(c *websocket.Conn, stepComplete chan<- int64, sc *StepCache, ec *EventCache, shutdown chan<- struct{}) {
+func Read(c *websocket.Conn, stepComplete chan<- bool, sc *StepCache, ec *EventCache, shutdown chan<- struct{}) {
 	defer func() {
 		log.Println("Shutdown due to socket connection going away.")
 		close(shutdown)
@@ -74,7 +74,8 @@ func Read(c *websocket.Conn, stepComplete chan<- int64, sc *StepCache, ec *Event
 
 		if m.ID == sc.GetId() {
 			// The current step has received a result from chrome
-			stepComplete <- sc.SetResult(m)
+			sc.SetResult(m)
+			stepComplete <- true
 		} else {
 			log.Printf("Checking MethodType %s\n", m.Method)
 			// Check for events related to the current Action

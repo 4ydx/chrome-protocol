@@ -32,7 +32,7 @@ func (ac *StepCache) GetId() int64 {
 	return id
 }
 
-func (ac *StepCache) SetResult(m cdproto.Message) int64 {
+func (ac *StepCache) SetResult(m cdproto.Message) {
 	ac.Lock()
 	defer ac.Unlock()
 
@@ -43,7 +43,4 @@ func (ac *StepCache) SetResult(m cdproto.Message) int64 {
 	log.Printf(".RES: %+v\n", ac.Step)
 	log.Printf("    : %+v\n", ac.Step.Params)
 	log.Printf("    : %+v\n", ac.Step.Returns)
-	id := ac.Step.ActionId
-
-	return id
 }

@@ -18,9 +18,6 @@ type Event struct {
 }
 
 type Step struct {
-	// The id of the parent that contains this step.
-	ActionId int64 `json:"-"`
-
 	// Values required to make a chrome devtools protocol request
 	Id     int64          `json:"id"`
 	Method string         `json:"method"`
@@ -33,21 +30,10 @@ type Step struct {
 
 type Action struct {
 	*sync.RWMutex
-	Id        int64
 	Events    []Event
 	Steps     []Step
 	StepIndex int
 	Start     *time.Time
-}
-
-type Actions []*Action
-
-func (acts *Actions) Add(action *Action) {
-	action.Id = int64(len(*acts))
-	for i := 0; i < len(action.Steps); i++ {
-		action.Steps[i].ActionId = action.Id
-	}
-	*acts = append(*acts, action)
 }
 
 func NewAction(events []Event, steps []Step) *Action {
@@ -95,7 +81,7 @@ func (act *Action) ToJSON() []byte {
 	return j
 }
 
-func (act *Action) Wait(actions chan<- *Action, ec *EventCache, stepComplete <-chan int64) {
+func (act *Action) Wait(actions chan<- *Action, ec *EventCache, stepComplete <-chan bool) {
 	for {
 		select {
 		case <-time.After(Wait):
@@ -103,15 +89,12 @@ func (act *Action) Wait(actions chan<- *Action, ec *EventCache, stepComplete <-c
 				log.Fatalf("Action %+v step timeout %+v\n", act, act.Step())
 			}
 			if act.IsComplete() && ec.EventsComplete() {
-				log.Printf("Action %d completed.", act.Id)
+				log.Print("Action completed.")
 				return
 			}
-			log.Printf("Action %d waiting...", act.Id)
-		case id := <-stepComplete:
+			log.Print("Action waiting...")
+		case <-stepComplete:
 			act.Lock()
-			if id != act.Id {
-				log.Fatalf("Mismatched id %d != %d\n", id, act.Id)
-			}
 			log.Printf("Step %d complete with %+v", act.Steps[act.StepIndex].Id, act.Steps[act.StepIndex].Returns)
 			act.StepIndex++
 			act.Unlock()
@@ -120,10 +103,25 @@ func (act *Action) Wait(actions chan<- *Action, ec *EventCache, stepComplete <-c
 				actions <- act
 			}
 			if act.IsComplete() && ec.EventsComplete() {
-				log.Printf("Action %d completed.", act.Id)
+				log.Printf("Action completed.")
 				return
 			}
-			log.Printf("Action %d waiting...", act.Id)
+			log.Printf("Action waiting...")
 		}
+	}
+}
+
+func (act *Action) Run(ec *EventCache, actionChan chan<- *Action, stepComplete chan bool) {
+	ec.Load(act.Events)
+	actionChan <- act
+	act.Wait(actionChan, ec, stepComplete)
+	ec.Log()
+}
+
+func (act *Action) Log() {
+	log.Printf("Act %+v\n", act)
+	for i, step := range act.Steps {
+		log.Printf("Step %d Params %+v", i, step.Params)
+		log.Printf("Step %d Return %+v", i, step.Returns)
 	}
 }

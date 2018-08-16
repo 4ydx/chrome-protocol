@@ -21,44 +21,35 @@ func main() {
 	c := cdp.GetWebsocket()
 	defer c.Close()
 
+	actionChan := make(chan *cdp.Action)
+	stepChan := make(chan bool)
+
 	shutdown := make(chan struct{})
-	actions := make(chan *cdp.Action)
-	stepComplete := make(chan int64)
 	allComplete := make(chan struct{})
 
 	stepCache := cdp.NewStepCache()
 	eventCache := cdp.NewEventCache()
 
-	go cdp.Write(c, actions, stepCache, shutdown, allComplete)
-	go cdp.Read(c, stepComplete, stepCache, eventCache, shutdown)
+	go cdp.Write(c, actionChan, stepCache, shutdown, allComplete)
+	go cdp.Read(c, stepChan, stepCache, eventCache, shutdown)
 
 	id := &cdp.ID{
 		RWMutex: &sync.RWMutex{},
 		Value:   11111,
 	}
 
-	var acts cdp.Actions
-
 	// Enable all communication with chrome
-	acts.Add(ea.EnablePage(id, time.Second*2))
+	a0 := ea.EnablePage(id, time.Second*2)
+	a0.Run(eventCache, actionChan, stepChan)
 
 	// Navigate
-	acts.Add(pa.Navigate(id, "https://google.com", time.Second*5))
+	a1 := pa.Navigate(id, "https://google.com", time.Second*5)
+	a1.Run(eventCache, actionChan, stepChan)
 
-	for i := 0; i < len(acts); i++ {
-		eventCache.Load(acts[i].Events)
-		actions <- acts[i]
-		acts[i].Wait(actions, eventCache, stepComplete)
-		eventCache.Log()
-	}
 	log.Print("\n-- All completed --\n")
-	for _, act := range acts {
-		log.Printf("Act %+v\n", act)
-		for i, step := range act.Steps {
-			log.Printf("Step %d Params %+v", i, step.Params)
-			log.Printf("Step %d Return %+v", i, step.Returns)
-		}
-	}
+	a0.Log()
+	a1.Log()
+
 	allComplete <- struct{}{}
 	<-shutdown
 }
