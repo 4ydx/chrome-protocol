@@ -30,18 +30,22 @@ type Step struct {
 
 type Action struct {
 	*sync.RWMutex
-	Events    []Event
 	Steps     []Step
 	StepIndex int
+	Events    map[string]Event
 	Start     *time.Time
 }
 
 func NewAction(events []Event, steps []Step) *Action {
-	return &Action{
+	act := &Action{
 		RWMutex: &sync.RWMutex{},
-		Events:  events,
+		Events:  make(map[string]Event),
 		Steps:   steps,
 	}
+	for _, e := range events {
+		act.Events[e.Name] = e
+	}
+	return act
 }
 
 func (act *Action) IsComplete() bool {
@@ -80,14 +84,14 @@ func (act *Action) ToJSON() []byte {
 	return j
 }
 
-func (act *Action) Wait(actions chan<- *Action, ec *EventCache, stepComplete <-chan bool) {
+func (act *Action) Wait(actions chan<- *Action, ac *ActionCache, stepComplete <-chan bool) {
 	for {
 		select {
 		case <-time.After(Wait):
 			if !act.IsComplete() && act.StepTimeout() {
 				log.Fatalf("Action %s step timeout\n", act.ToJSON())
 			}
-			if act.IsComplete() && ec.EventsComplete() {
+			if act.IsComplete() && ac.EventsComplete() {
 				log.Print("Action completed.")
 				return
 			}
@@ -96,7 +100,7 @@ func (act *Action) Wait(actions chan<- *Action, ec *EventCache, stepComplete <-c
 			if !act.IsComplete() {
 				actions <- act
 			}
-			if act.IsComplete() && ec.EventsComplete() {
+			if act.IsComplete() && ac.EventsComplete() {
 				log.Printf("Action completed.")
 				return
 			}
@@ -105,11 +109,10 @@ func (act *Action) Wait(actions chan<- *Action, ec *EventCache, stepComplete <-c
 	}
 }
 
-func (act *Action) Run(ec *EventCache, actionChan chan<- *Action, stepComplete <-chan bool) {
-	ec.Load(act.Events)
+func (act *Action) Run(ac *ActionCache, actionChan chan<- *Action, stepComplete <-chan bool) {
 	actionChan <- act
-	act.Wait(actionChan, ec, stepComplete)
-	ec.Log()
+	act.Wait(actionChan, ac, stepComplete)
+	ac.Log()
 }
 
 func (act *Action) Log() {

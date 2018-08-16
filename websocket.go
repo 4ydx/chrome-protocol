@@ -52,7 +52,7 @@ func GetWebsocket() *websocket.Conn {
 	return c
 }
 
-func Read(c *websocket.Conn, stepComplete chan<- bool, ac *ActionCache, ec *EventCache, shutdown chan<- struct{}) {
+func Read(c *websocket.Conn, stepComplete chan<- bool, ac *ActionCache, shutdown chan<- struct{}) {
 	defer func() {
 		log.Println("Shutdown due to socket connection going away.")
 		close(shutdown)
@@ -76,8 +76,8 @@ func Read(c *websocket.Conn, stepComplete chan<- bool, ac *ActionCache, ec *Even
 		} else {
 			log.Printf("Checking MethodType %s\n", m.Method)
 			// Check for events related to the current Action
-			if ec.HasEvent(m.Method) {
-				ec.SetResult(m.Method, m)
+			if ac.HasEvent(m.Method) {
+				ac.SetEventResult(m.Method, m)
 			}
 		}
 	}

@@ -9,15 +9,15 @@ import (
 )
 
 func main() {
-	eventCache, id, actionChan, stepChan, allComplete, shutdown := cdp.Start()
+	actionCache, id, actionChan, stepChan, allComplete, shutdown := cdp.Start()
 
 	// Enable all communication with chrome
 	a0 := ea.EnablePage(id, time.Second*2)
-	a0.Run(eventCache, actionChan, stepChan)
+	a0.Run(actionCache, actionChan, stepChan)
 
 	// Navigate
 	a1 := pa.Navigate(id, "https://google.com", time.Second*5)
-	a1.Run(eventCache, actionChan, stepChan)
+	a1.Run(actionCache, actionChan, stepChan)
 
 	log.Print("\n-- All completed --\n")
 	a0.Log()

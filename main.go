@@ -10,7 +10,7 @@ import (
 var Conn *websocket.Conn
 
 // Start prepares required resources to begin automation.
-func Start() (*EventCache, *ID, chan *Action, chan bool, chan struct{}, chan struct{}) {
+func Start() (*ActionCache, *ID, chan *Action, chan bool, chan struct{}, chan struct{}) {
 	f, err := os.Create("log.txt")
 	if err != nil {
 		panic(err)
@@ -27,16 +27,15 @@ func Start() (*EventCache, *ID, chan *Action, chan bool, chan struct{}, chan str
 	allComplete := make(chan struct{})
 
 	actionCache := NewActionCache()
-	eventCache := NewEventCache()
 
 	go Write(Conn, actionChan, actionCache, shutdown, allComplete)
-	go Read(Conn, stepChan, actionCache, eventCache, shutdown)
+	go Read(Conn, stepChan, actionCache, shutdown)
 
 	id := &ID{
 		RWMutex: &sync.RWMutex{},
 		Value:   11111,
 	}
-	return eventCache, id, actionChan, stepChan, allComplete, shutdown
+	return actionCache, id, actionChan, stepChan, allComplete, shutdown
 }
 
 // Stop closes used resources.
