@@ -112,7 +112,6 @@ func (act *Action) Wait(actions chan<- *Action, ac *ActionCache, stepComplete <-
 func (act *Action) Run(ac *ActionCache, actionChan chan<- *Action, stepComplete <-chan bool) {
 	actionChan <- act
 	act.Wait(actionChan, ac, stepComplete)
-	ac.Log()
 }
 
 func (act *Action) Log() {

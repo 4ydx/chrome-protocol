@@ -1,6 +1,8 @@
 package da
 
 import (
+	//"fmt"
+	//"github.com/4ydx/cdproto"
 	cd "github.com/4ydx/cdproto/cdp"
 	"github.com/4ydx/cdproto/dom"
 	"github.com/4ydx/chrome-protocol"
@@ -13,7 +15,7 @@ func GetDocument(id *cdp.ID, find string, timeout time.Duration, actionCache *cd
 	// Find nodes on the page if they exist.
 	a0 := cdp.NewAction([]cdp.Event{},
 		[]cdp.Step{
-			cdp.Step{Id: id.GetNext(), Method: dom.CommandGetDocument, Params: &dom.GetDocumentParams{}, Returns: &dom.GetDocumentReturns{}, Timeout: timeout},
+			cdp.Step{Id: id.GetNext(), Method: dom.CommandGetDocument, Params: &dom.GetDocumentParams{Depth: -1}, Returns: &dom.GetDocumentReturns{}, Timeout: timeout},
 		})
 	a0.Run(actionCache, actionChan, stepChan)
 
@@ -25,8 +27,8 @@ func FindAll(id *cdp.ID, find string, timeout time.Duration, actionCache *cdp.Ac
 	doc := GetDocument(id, find, timeout, actionCache, actionChan, stepChan)
 	log.Printf("Doc %+v", doc)
 
-	// Find nodes on the page if they exist.
-	a0 := cdp.NewAction([]cdp.Event{},
+	a0 := cdp.NewAction(
+		[]cdp.Event{},
 		[]cdp.Step{
 			cdp.Step{Id: id.GetNext(), Method: dom.CommandPerformSearch, Params: &dom.PerformSearchParams{Query: find}, Returns: &dom.PerformSearchReturns{}, Timeout: timeout},
 		})

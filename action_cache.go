@@ -59,7 +59,7 @@ func (ac *ActionCache) SetEventResult(name cdproto.MethodType, m cdproto.Message
 		e.IsFound = true
 		ac.Events[string(name)] = e
 
-		log.Printf(".SET: %s %+v\n", name, m)
+		log.Printf(".EVT: %s %+v\n", name, m)
 		log.Printf("    : %+v\n", e)
 		log.Printf("    : %+v\n", e.Value)
 	}

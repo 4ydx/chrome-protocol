@@ -70,10 +70,11 @@ func Read(c *websocket.Conn, stepComplete chan<- bool, ac *ActionCache, shutdown
 		}
 		if ac.HasStepId(m.ID) {
 			log.Printf(".RAW: %s\n", message)
-			log.Printf(".DEC: %+v\n", m)
+			//log.Printf(".DEC: %+v\n", m)
 			ac.SetResult(m)
 			stepComplete <- true
 		} else {
+			log.Printf(".RAW: %s\n", message)
 			log.Printf("Checking MethodType %s\n", m.Method)
 			// Check for events related to the current Action
 			if ac.HasEvent(m.Method) {
