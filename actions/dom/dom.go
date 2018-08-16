@@ -7,6 +7,8 @@ import (
 )
 
 // Find finds all nodes using XPath, CSS selector, or text.
+// TODO: so how to chain this together???
+//       a "step" needs to be able to reliably get a value from a previous step and then apply that value to its own params.
 func Find(id *cdp.ID, find string, timeout time.Duration) *cdp.Action {
 	return cdp.NewAction(
 		[]cdp.Event{},

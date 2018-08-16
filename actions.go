@@ -18,14 +18,17 @@ type Event struct {
 }
 
 type Step struct {
+	// The id of the parent that contains this step.
 	ActionId int64 `json:"-"`
 
-	Id      int64            `json:"id"`
-	Method  string           `json:"method"`
-	Params  json.Marshaler   `json:"params"`
-	Returns json.Unmarshaler `json:"-"`
+	// Values required to make a chrome devtools protocol request
+	Id     int64          `json:"id"`
+	Method string         `json:"method"`
+	Params json.Marshaler `json:"params"`
 
-	Timeout time.Duration `json:"-"`
+	Returns         json.Unmarshaler `json:"-"` // The struct that will be filled when a matching step Id is found in a reply over the chrome websocket.
+	Timeout         time.Duration    `json:"-"` // How long until the current step experiences a timeout, which will halt the entire process.
+	PreviousReturns func()           `json:"-"` // Method defined by the user to take the previous step's Returns and apply them to the current step's Params.
 }
 
 type Action struct {
