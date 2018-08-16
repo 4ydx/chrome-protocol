@@ -1,4 +1,4 @@
-package main
+package cdp
 
 import (
 	"github.com/chromedp/cdproto"
