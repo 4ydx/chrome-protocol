@@ -99,10 +99,11 @@ func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-c
 			}
 			log.Print("Action waiting...")
 		case <-stepChan:
-			if !act.IsComplete() && act.StepTimeout() {
-				return errors.New(fmt.Sprintf("Action %s step timeout\n", act.ToJSON()))
-			}
 			if !act.IsComplete() {
+				if act.StepTimeout() {
+					return errors.New(fmt.Sprintf("Action %s step timeout\n", act.ToJSON()))
+				}
+				// Push the current action's next step to the server.
 				actionChan <- act
 			}
 			if act.IsComplete() && ac.EventsComplete() {
