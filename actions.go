@@ -120,7 +120,7 @@ func (act *Action) Wait(actions chan<- *Action, ec *EventCache, stepComplete <-c
 				log.Printf("Action %d completed.", act.Id)
 				return
 			}
-			log.Printf("Action %d completed but waiting on events...", act.Id)
+			log.Printf("Action %d waiting...", act.Id)
 		}
 	}
 }
