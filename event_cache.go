@@ -24,8 +24,8 @@ func (ec *EventCache) Log() {
 	defer ec.RUnlock()
 
 	for i, event := range ec.Events {
-		log.Printf("Event %d %+v\n", i, event)
-		log.Printf("Event %d Value %+v", i, event.Value)
+		log.Printf("Event %s %+v\n", i, event)
+		log.Printf("Event %s Value %+v", i, event.Value)
 	}
 }
 
