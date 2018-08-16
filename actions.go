@@ -84,7 +84,7 @@ func (act *Action) ToJSON() []byte {
 	return j
 }
 
-func (act *Action) Wait(actions chan<- *Action, ac *ActionCache, stepComplete <-chan bool) {
+func (act *Action) Wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-chan struct{}) {
 	for {
 		select {
 		case <-time.After(Wait):
@@ -96,9 +96,9 @@ func (act *Action) Wait(actions chan<- *Action, ac *ActionCache, stepComplete <-
 				return
 			}
 			log.Print("Action waiting...")
-		case <-stepComplete:
+		case <-stepChan:
 			if !act.IsComplete() {
-				actions <- act
+				actionChan <- act
 			}
 			if act.IsComplete() && ac.EventsComplete() {
 				log.Printf("Action completed.")
@@ -109,9 +109,9 @@ func (act *Action) Wait(actions chan<- *Action, ac *ActionCache, stepComplete <-
 	}
 }
 
-func (act *Action) Run(ac *ActionCache, actionChan chan<- *Action, stepComplete <-chan bool) {
-	actionChan <- act
-	act.Wait(actionChan, ac, stepComplete)
+func (act *Action) Run() {
+	ActionChan <- act
+	act.Wait(ActionChan, Cache, StepChan)
 }
 
 func (act *Action) Log() {

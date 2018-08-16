@@ -52,7 +52,7 @@ func GetWebsocket() *websocket.Conn {
 	return c
 }
 
-func Read(c *websocket.Conn, stepComplete chan<- bool, ac *ActionCache, shutdown chan<- struct{}) {
+func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache, shutdown chan<- struct{}) {
 	defer func() {
 		log.Println("Shutdown due to socket connection going away.")
 		close(shutdown)
@@ -72,7 +72,7 @@ func Read(c *websocket.Conn, stepComplete chan<- bool, ac *ActionCache, shutdown
 			log.Printf(".RAW: %s\n", message)
 			//log.Printf(".DEC: %+v\n", m)
 			ac.SetResult(m)
-			stepComplete <- true
+			stepComplete <- struct{}{}
 		} else {
 			log.Printf(".RAW: %s\n", message)
 			log.Printf("Checking MethodType %s\n", m.Method)
