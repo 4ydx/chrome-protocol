@@ -99,6 +99,9 @@ func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-c
 			}
 			log.Print("Action waiting...")
 		case <-stepChan:
+			if !act.IsComplete() && act.StepTimeout() {
+				return errors.New(fmt.Sprintf("Action %s step timeout\n", act.ToJSON()))
+			}
 			if !act.IsComplete() {
 				actionChan <- act
 			}
