@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/4ydx/chrome-protocol"
+	"github.com/4ydx/chrome-protocol/actions/dom"
 	"github.com/4ydx/chrome-protocol/actions/enable"
 	"github.com/4ydx/chrome-protocol/actions/page"
 	"log"
@@ -39,11 +40,15 @@ func main() {
 
 	var acts cdp.Actions
 
-	// Enable all communication with chrome
+	// Enable communication with chrome
+	acts.Add(ea.EnableDom(id, time.Second*2))
 	acts.Add(ea.EnablePage(id, time.Second*2))
 
 	// Navigate
 	acts.Add(pa.Navigate(id, "https://google.com", time.Second*5))
+
+	// Find the element
+	acts.Add(da.Find(id, "lst-ib", time.Second*5))
 
 	for i := 0; i < len(acts); i++ {
 		eventCache.Load(acts[i].Events)
