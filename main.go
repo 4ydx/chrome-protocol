@@ -7,10 +7,14 @@ import (
 	"sync"
 )
 
-var Conn *websocket.Conn
+var (
+	Conn        *websocket.Conn
+	AllComplete chan struct{}
+	ShutDown    chan struct{}
+)
 
 // Start prepares required resources to begin automation.
-func Start() (*ActionCache, *ID, chan *Action, chan bool, chan struct{}, chan struct{}) {
+func Start() (*ActionCache, *ID, chan *Action, chan bool) {
 	f, err := os.Create("log.txt")
 	if err != nil {
 		panic(err)
@@ -19,29 +23,28 @@ func Start() (*ActionCache, *ID, chan *Action, chan bool, chan struct{}, chan st
 	log.SetOutput(f)
 
 	Conn = GetWebsocket()
+	ShutDown = make(chan struct{})
+	AllComplete = make(chan struct{})
 
 	actionChan := make(chan *Action)
 	stepChan := make(chan bool)
 
-	shutdown := make(chan struct{})
-	allComplete := make(chan struct{})
-
 	actionCache := NewActionCache()
 
-	go Write(Conn, actionChan, actionCache, shutdown, allComplete)
-	go Read(Conn, stepChan, actionCache, shutdown)
+	go Write(Conn, actionChan, actionCache, ShutDown, AllComplete)
+	go Read(Conn, stepChan, actionCache, ShutDown)
 
 	id := &ID{
 		RWMutex: &sync.RWMutex{},
 		Value:   11111,
 	}
-	return actionCache, id, actionChan, stepChan, allComplete, shutdown
+	return actionCache, id, actionChan, stepChan
 }
 
 // Stop closes used resources.
-func Stop(allComplete chan<- struct{}, shutdown <-chan struct{}) {
+func Stop() {
 	defer Conn.Close()
 
-	allComplete <- struct{}{}
-	<-shutdown
+	AllComplete <- struct{}{}
+	<-ShutDown
 }

@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	actionCache, id, actionChan, stepChan, allComplete, shutdown := cdp.Start()
+	actionCache, id, actionChan, stepChan := cdp.Start()
 
 	// Enable all communication with chrome
 	a0 := ea.EnablePage(id, time.Second*2)
@@ -23,5 +23,5 @@ func main() {
 	a0.Log()
 	a1.Log()
 
-	cdp.Stop(allComplete, shutdown)
+	cdp.Stop()
 }
