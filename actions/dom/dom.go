@@ -1,6 +1,7 @@
 package da
 
 import (
+	"errors"
 	cd "github.com/4ydx/cdproto/cdp"
 	"github.com/4ydx/cdproto/dom"
 	"github.com/4ydx/chrome-protocol"
@@ -51,8 +52,8 @@ func FindAll(id *cdp.ID, find string, timeout time.Duration) (*dom.GetFlattenedD
 	return doc, a1.Steps[0].Returns.(*dom.GetSearchResultsReturns)
 }
 
-// Focus on the node identified by the given nodeId.
-func Focus(id *cdp.ID, find string, timeout time.Duration) *dom.FocusReturns {
+// Focus on the first element node that matches the find parameter.
+func Focus(id *cdp.ID, find string, timeout time.Duration) error {
 	doc, hits := FindAll(id, find, timeout)
 
 	target := cd.NodeID(0)
@@ -63,11 +64,14 @@ func Focus(id *cdp.ID, find string, timeout time.Duration) *dom.FocusReturns {
 			}
 		}
 	}
+	if target == 0 {
+		return errors.New("No element found.")
+	}
 	a0 := cdp.NewAction([]cdp.Event{},
 		[]cdp.Step{
 			cdp.Step{Id: id.GetNext(), Method: dom.CommandFocus, Params: &dom.FocusParams{NodeID: target}, Returns: &dom.FocusReturns{}, Timeout: timeout},
 		})
 	a0.Run()
 
-	return a0.Steps[0].Returns.(*dom.FocusReturns)
+	return nil
 }
