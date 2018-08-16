@@ -78,7 +78,7 @@ func (ec *EventCache) SetResult(name cdproto.MethodType, m cdproto.Message) {
 		ec.Events[name] = e
 
 		log.Printf(".SET: %s %+v\n", name, m)
-		log.Printf(".RES: %+v\n", e)
+		log.Printf("    : %+v\n", e)
 		log.Printf("    : %+v\n", e.Value)
 	}
 }

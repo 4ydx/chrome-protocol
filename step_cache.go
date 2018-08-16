@@ -40,7 +40,7 @@ func (ac *StepCache) SetResult(m cdproto.Message) {
 	if err != nil {
 		log.Fatal("Unmarshal error:", err)
 	}
-	log.Printf(".RES: %+v\n", ac.Step)
+	log.Printf(".STP: %+v\n", ac.Step)
 	log.Printf("    : %+v\n", ac.Step.Params)
 	log.Printf("    : %+v\n", ac.Step.Returns)
 }

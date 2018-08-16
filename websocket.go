@@ -63,16 +63,14 @@ func Read(c *websocket.Conn, stepComplete chan<- bool, sc *StepCache, ec *EventC
 			log.Println("Read error:", err)
 			return
 		}
-		log.Printf(".RAW: %s\n", message)
-
 		m := cdproto.Message{}
 		err = m.UnmarshalJSON(message)
 		if err != nil {
 			log.Fatal("Unmarshal error:", err)
 		}
-		log.Printf(".DEC: %+v\n", m)
-
 		if m.ID == sc.GetId() {
+			log.Printf(".RAW: %s\n", message)
+			log.Printf(".DEC: %+v\n", m)
 			// The current step has received a result from chrome
 			sc.SetResult(m)
 			stepComplete <- true
