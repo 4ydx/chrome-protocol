@@ -37,3 +37,9 @@ func Page(id *cdp.ID, timeout time.Duration) error {
 		cdp.Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: timeout},
 	}).Run()
 }
+
+func Network(id *cdp.ID, timeout time.Duration) error {
+	return cdp.NewAction([]cdp.Event{}, []cdp.Step{
+		cdp.Step{Id: id.GetNext(), Method: network.CommandEnable, Params: &network.EnableParams{}, Returns: &network.EnableReturns{}, Timeout: timeout},
+	}).Run()
+}

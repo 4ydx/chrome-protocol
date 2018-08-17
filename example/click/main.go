@@ -12,11 +12,14 @@ import (
 func main() {
 	id := cdp.Start()
 
-	// Enable all communication with chrome
+	// Enable communication with chrome
 	if err := enable.Page(id, time.Second*2); err != nil {
 		panic(err)
 	}
 	if err := enable.Dom(id, time.Second*2); err != nil {
+		panic(err)
+	}
+	if err := enable.Network(id, time.Second*2); err != nil {
 		panic(err)
 	}
 
