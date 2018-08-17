@@ -85,7 +85,9 @@ func Focus(id *cdp.ID, find string, timeout time.Duration) error {
 	target := cd.NodeID(0)
 	for _, child := range nodes {
 		if child.NodeType == 1 {
+			// Is element node.
 			target = child.NodeID
+			break
 		}
 	}
 	a0 := cdp.NewAction([]cdp.Event{},
