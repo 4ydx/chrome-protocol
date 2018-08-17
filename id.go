@@ -4,6 +4,7 @@ import (
 	"sync"
 )
 
+// ID provides unique incremental values for requests being sent to the server.
 type ID struct {
 	*sync.RWMutex
 	Value int64
