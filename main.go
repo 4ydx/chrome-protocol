@@ -22,7 +22,7 @@ func Start() *ID {
 	if err != nil {
 		panic(err)
 	}
-	log.SetFlags(log.Lshortfile | log.LstdFlags)
+	log.SetFlags(log.Lshortfile | log.LstdFlags | log.Lmicroseconds)
 	log.SetOutput(f)
 
 	Conn = GetWebsocket()
