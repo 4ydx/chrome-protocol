@@ -50,6 +50,35 @@ func NewAction(events []Event, steps []Step) *Action {
 	return act
 }
 
+func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-chan struct{}) error {
+	for {
+		select {
+		case <-time.After(Wait):
+			if !act.IsComplete() && act.StepTimeout() {
+				return errors.New(fmt.Sprintf("Action %s step timeout\n", act.ToJSON()))
+			}
+			if act.IsComplete() && ac.EventsComplete() {
+				log.Print("Action completed.")
+				return nil
+			}
+			log.Print("Action waiting...")
+		case <-stepChan:
+			if !act.IsComplete() {
+				if act.StepTimeout() {
+					return errors.New(fmt.Sprintf("Action %s step timeout\n", act.ToJSON()))
+				}
+				// Push the current action's next step to the server.
+				actionChan <- act
+			}
+			if act.IsComplete() && ac.EventsComplete() {
+				log.Printf("Action completed.")
+				return nil
+			}
+			log.Printf("Action waiting...")
+		}
+	}
+}
+
 func (act *Action) IsComplete() bool {
 	act.RLock()
 	defer act.RUnlock()
@@ -84,35 +113,6 @@ func (act *Action) ToJSON() []byte {
 		log.Fatal(err)
 	}
 	return j
-}
-
-func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-chan struct{}) error {
-	for {
-		select {
-		case <-time.After(Wait):
-			if !act.IsComplete() && act.StepTimeout() {
-				return errors.New(fmt.Sprintf("Action %s step timeout\n", act.ToJSON()))
-			}
-			if act.IsComplete() && ac.EventsComplete() {
-				log.Print("Action completed.")
-				return nil
-			}
-			log.Print("Action waiting...")
-		case <-stepChan:
-			if !act.IsComplete() {
-				if act.StepTimeout() {
-					return errors.New(fmt.Sprintf("Action %s step timeout\n", act.ToJSON()))
-				}
-				// Push the current action's next step to the server.
-				actionChan <- act
-			}
-			if act.IsComplete() && ac.EventsComplete() {
-				log.Printf("Action completed.")
-				return nil
-			}
-			log.Printf("Action waiting...")
-		}
-	}
 }
 
 func (act *Action) Run() error {
