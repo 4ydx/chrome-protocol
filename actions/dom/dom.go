@@ -29,6 +29,7 @@ func FindAll(id *cdp.ID, find string, timeout time.Duration) ([]*cd.Node, error)
 		return found, err
 	}
 
+	// Make nodeId search request.
 	a0 := cdp.NewAction(
 		[]cdp.Event{},
 		[]cdp.Step{
@@ -38,10 +39,12 @@ func FindAll(id *cdp.ID, find string, timeout time.Duration) ([]*cd.Node, error)
 	if err != nil {
 		return found, err
 	}
-
 	ret := a0.Steps[0].Returns.(*dom.PerformSearchReturns)
-	if ret.SearchID == "" || ret.ResultCount == 0 {
-		return found, err
+	if ret.SearchID == "" {
+		return found, errors.New("Unexpected empty search id.")
+	}
+	if ret.ResultCount == 0 {
+		return found, errors.New("No nodes found.")
 	}
 
 	// Retrieve the NodeIds.
