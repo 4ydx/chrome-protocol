@@ -21,10 +21,12 @@ func GetEntireDocument(id *cdp.ID, timeout time.Duration) (*dom.GetFlattenedDocu
 }
 
 // FindAll finds all nodes using XPath, CSS selector, or text.
-func FindAll(id *cdp.ID, find string, timeout time.Duration) (*dom.GetFlattenedDocumentReturns, *dom.GetSearchResultsReturns, error) {
+func FindAll(id *cdp.ID, find string, timeout time.Duration) ([]*cd.Node, error) {
+	found := make([]*cd.Node, 0)
+
 	doc, err := GetEntireDocument(id, timeout)
 	if err != nil {
-		return doc, &dom.GetSearchResultsReturns{}, err
+		return found, err
 	}
 
 	a0 := cdp.NewAction(
@@ -34,12 +36,12 @@ func FindAll(id *cdp.ID, find string, timeout time.Duration) (*dom.GetFlattenedD
 		})
 	err = a0.Run()
 	if err != nil {
-		return doc, &dom.GetSearchResultsReturns{}, err
+		return found, err
 	}
 
 	ret := a0.Steps[0].Returns.(*dom.PerformSearchReturns)
 	if ret.SearchID == "" || ret.ResultCount == 0 {
-		return doc, &dom.GetSearchResultsReturns{}, nil
+		return found, err
 	}
 
 	// Retrieve the NodeIds.
@@ -55,28 +57,36 @@ func FindAll(id *cdp.ID, find string, timeout time.Duration) (*dom.GetFlattenedD
 		})
 	err = a1.Run()
 	if err != nil {
-		return doc, &dom.GetSearchResultsReturns{}, err
+		return found, err
 	}
 
-	return doc, a1.Steps[0].Returns.(*dom.GetSearchResultsReturns), nil
+	// Find the matching nodes from the document
+	hits := a1.Steps[0].Returns.(*dom.GetSearchResultsReturns)
+	for _, child := range doc.Nodes {
+		for _, id := range hits.NodeIds {
+			if id == child.NodeID {
+				found = append(found, child)
+			}
+		}
+	}
+
+	return found, nil
 }
 
 // Focus on the first element node that matches the find parameter.
 func Focus(id *cdp.ID, find string, timeout time.Duration) error {
-	doc, hits, err := FindAll(id, find, timeout)
+	nodes, err := FindAll(id, find, timeout)
 	if err != nil {
 		return err
 	}
-	target := cd.NodeID(0)
-	for _, child := range doc.Nodes {
-		for _, id := range hits.NodeIds {
-			if id == child.NodeID && child.NodeType == 1 {
-				target = id
-			}
-		}
-	}
-	if target == 0 {
+	if len(nodes) == 0 {
 		return errors.New("No element found.")
+	}
+	target := cd.NodeID(0)
+	for _, child := range nodes {
+		if child.NodeType == 1 {
+			target = child.NodeID
+		}
 	}
 	a0 := cdp.NewAction([]cdp.Event{},
 		[]cdp.Step{
