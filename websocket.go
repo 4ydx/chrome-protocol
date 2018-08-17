@@ -68,13 +68,12 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache, shut
 		if err != nil {
 			log.Fatal("Unmarshal error:", err)
 		}
+		log.Printf(".RAW: %s\n", message)
+
 		if ac.HasStepId(m.ID) {
-			log.Printf(".RAW: %s\n", message)
-			//log.Printf(".DEC: %+v\n", m)
 			ac.SetResult(m)
 			stepComplete <- struct{}{}
 		} else {
-			log.Printf(".RAW: %s\n", message)
 			log.Printf("Checking MethodType %s\n", m.Method)
 			// Check for events related to the current Action
 			if ac.HasEvent(m.Method) {
