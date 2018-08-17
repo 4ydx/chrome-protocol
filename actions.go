@@ -50,6 +50,8 @@ func NewAction(events []Event, steps []Step) *Action {
 	return act
 }
 
+// wait continues to query the state of the action.
+// Once the action is complete, wait will return.
 func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-chan struct{}) error {
 	for {
 		select {
@@ -79,6 +81,7 @@ func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-c
 	}
 }
 
+// IsComplete indicates that all steps are complete.
 func (act *Action) IsComplete() bool {
 	act.RLock()
 	defer act.RUnlock()
@@ -86,6 +89,8 @@ func (act *Action) IsComplete() bool {
 	return act.StepIndex == len(act.Steps)
 }
 
+// StepTimeout once timed out will trigger an error and stop the automation.
+// 2DO: Consider using context rather than a timeout.  Go programmers love context.
 func (act *Action) StepTimeout() bool {
 	act.RLock()
 	defer act.RUnlock()
@@ -98,6 +103,7 @@ func (act *Action) StepTimeout() bool {
 	return b
 }
 
+// ToJSON encodes the current step.  It will be sent to the server as a request.
 func (act *Action) ToJSON() []byte {
 	act.RLock()
 	defer act.RUnlock()
@@ -115,6 +121,8 @@ func (act *Action) ToJSON() []byte {
 	return j
 }
 
+// Run sends the current action to websocket code that will create a request.
+// Then the action will wait until all steps and expected events are completed.
 func (act *Action) Run() error {
 	ActionChan <- act
 	return act.wait(ActionChan, Cache, StepChan)
