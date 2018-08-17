@@ -14,25 +14,25 @@ func main() {
 	id := cdp.Start()
 
 	// Enable all communication with chrome
-	if err := ea.EnablePage(id, time.Second*2); err != nil {
+	if err := enable.Page(id, time.Second*2); err != nil {
 		panic(err)
 	}
-	if err := ea.EnableDom(id, time.Second*2); err != nil {
+	if err := enable.Dom(id, time.Second*2); err != nil {
 		panic(err)
 	}
 
 	// Navigate
-	if err := pa.Navigate(id, "https://google.com", time.Second*5); err != nil {
+	if err := page.Navigate(id, "https://google.com", time.Second*5); err != nil {
 		panic(err)
 	}
 
 	// Focus
-	if err := da.Focus(id, "#lst-ib", time.Second*5); err != nil {
+	if err := dom.Focus(id, "#lst-ib", time.Second*5); err != nil {
 		panic(err)
 	}
 
 	// Fill
-	if err := ia.Fill(id, "testing", time.Second*5); err != nil {
+	if err := input.Fill(id, "testing", time.Second*5); err != nil {
 		panic(err)
 	}
 

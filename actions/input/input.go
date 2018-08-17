@@ -1,4 +1,4 @@
-package ia
+package input
 
 import (
 	"github.com/4ydx/cdproto/input"

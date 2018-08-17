@@ -12,12 +12,12 @@ func main() {
 	id := cdp.Start()
 
 	// Enable all communication with chrome
-	if err := ea.EnablePage(id, time.Second*2); err != nil {
+	if err := enable.Page(id, time.Second*2); err != nil {
 		panic(err)
 	}
 
 	// Navigate
-	if err := pa.Navigate(id, "https://google.com", time.Second*5); err != nil {
+	if err := page.Navigate(id, "https://google.com", time.Second*5); err != nil {
 		panic(err)
 	}
 

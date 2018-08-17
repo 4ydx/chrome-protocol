@@ -1,4 +1,4 @@
-package ea
+package enable
 
 import (
 	"github.com/4ydx/cdproto/css"
@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func EnableAll(id *cdp.ID, timeout time.Duration) error {
+func All(id *cdp.ID, timeout time.Duration) error {
 	// Order is important.  Dom should come first.
 	return cdp.NewAction([]cdp.Event{}, []cdp.Step{
 		cdp.Step{Id: id.GetNext(), Method: dom.CommandEnable, Params: &dom.EnableParams{}, Returns: &dom.EnableReturns{}, Timeout: timeout},
@@ -26,13 +26,13 @@ func EnableAll(id *cdp.ID, timeout time.Duration) error {
 	}).Run()
 }
 
-func EnableDom(id *cdp.ID, timeout time.Duration) error {
+func Dom(id *cdp.ID, timeout time.Duration) error {
 	return cdp.NewAction([]cdp.Event{}, []cdp.Step{
 		cdp.Step{Id: id.GetNext(), Method: dom.CommandEnable, Params: &dom.EnableParams{}, Returns: &dom.EnableReturns{}, Timeout: timeout},
 	}).Run()
 }
 
-func EnablePage(id *cdp.ID, timeout time.Duration) error {
+func Page(id *cdp.ID, timeout time.Duration) error {
 	return cdp.NewAction([]cdp.Event{}, []cdp.Step{
 		cdp.Step{Id: id.GetNext(), Method: page.CommandEnable, Params: &page.EnableParams{}, Returns: &page.EnableReturns{}, Timeout: timeout},
 	}).Run()

@@ -1,4 +1,4 @@
-package da
+package dom
 
 import (
 	"errors"

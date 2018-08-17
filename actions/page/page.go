@@ -1,4 +1,4 @@
-package pa
+package page
 
 import (
 	"github.com/4ydx/cdproto"
