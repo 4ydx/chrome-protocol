@@ -15,8 +15,8 @@ func NewActionCache() *ActionCache {
 }
 
 func (ac *ActionCache) Set(a *Action) {
-	a.RLock()
-	defer a.RUnlock()
+	a.Lock()
+	defer a.Unlock()
 
 	log.Printf("Set action %+v\n", a)
 	ac.a = a
