@@ -106,7 +106,7 @@ func Focus(pg *cdp.Page, find string, timeout time.Duration) error {
 		[]cdp.Step{
 			cdp.Step{ID: pg.ID.GetNext(), Method: dom.CommandDOMFocus, Params: &dom.FocusArgs{NodeID: target}, Reply: &dom.FocusReply{}, Timeout: timeout},
 		})
-	err := a0.Run()
+	err = a0.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -125,7 +125,7 @@ func Click(pg *cdp.Page, find string, timeout time.Duration) error {
 		[]cdp.Step{
 			cdp.Step{ID: pg.ID.GetNext(), Method: dom.CommandDOMGetBoxModel, Params: &dom.GetBoxModelArgs{NodeID: target}, Reply: &dom.GetBoxModelReply{}, Timeout: timeout},
 		})
-	err := a0.Run()
+	err = a0.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
