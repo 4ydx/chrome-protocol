@@ -107,9 +107,7 @@ func Write(c *websocket.Conn, actionChan <-chan *Action, ac *ActionCache, shutdo
 			log.Println("Shutdown.")
 			return
 		case action := <-actionChan:
-			fmt.Println("FUCK")
 			log.Printf("!REQ: %s\n", action.ToJSON())
-			fmt.Println("FUCK")
 			ac.Set(action)
 
 			err := c.WriteMessage(websocket.TextMessage, action.ToJSON())

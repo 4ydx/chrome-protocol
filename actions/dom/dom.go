@@ -106,7 +106,10 @@ func Focus(pg *cdp.Page, find string, timeout time.Duration) error {
 		[]cdp.Step{
 			cdp.Step{ID: pg.ID.GetNext(), Method: dom.CommandDOMFocus, Params: &dom.FocusArgs{NodeID: target}, Reply: &dom.FocusReply{}, Timeout: timeout},
 		})
-	a0.Run()
+	err := a0.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return nil
 }
@@ -122,7 +125,10 @@ func Click(pg *cdp.Page, find string, timeout time.Duration) error {
 		[]cdp.Step{
 			cdp.Step{ID: pg.ID.GetNext(), Method: dom.CommandDOMGetBoxModel, Params: &dom.GetBoxModelArgs{NodeID: target}, Reply: &dom.GetBoxModelReply{}, Timeout: timeout},
 		})
-	a0.Run()
+	err := a0.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Box is an array of quad vertices, x immediately followed by y for each point, points clock-wise.
 	// (0, 1), (2, 3) <- upper edge
@@ -138,7 +144,10 @@ func Click(pg *cdp.Page, find string, timeout time.Duration) error {
 			[]cdp.Step{
 				cdp.Step{ID: pg.ID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: click}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
 			})
-		a1.Run()
+		err := a1.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	return nil

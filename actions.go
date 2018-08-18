@@ -23,9 +23,9 @@ type Event struct {
 // Step represents a single json request sent to the server over the websocket.
 type Step struct {
 	// Values required to make a chrome devtools protocol request.
-	ID     int64            `json:"id"`
-	Method string           `json:"method,omitempty"`
-	Params json.Unmarshaler `json:"params,omitempty"`
+	ID     int64          `json:"id"`
+	Method string         `json:"method,omitempty"`
+	Params json.Marshaler `json:"params,omitempty"`
 
 	Reply           json.Unmarshaler `json:"-"` // The struct that will be filled when a matching step Id is found in a reply over the chrome websocket.
 	Timeout         time.Duration    `json:"-"` // How long until the current step experiences a timeout, which will halt the entire process.
@@ -65,7 +65,7 @@ func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-c
 		select {
 		case <-time.After(Wait):
 			if !act.IsComplete() && act.StepTimeout() {
-				return fmt.Errorf("ction %s step timeout", act.ToJSON())
+				return fmt.Errorf("step timeout %s", act.ToJSON())
 			}
 			if act.IsComplete() && ac.EventsComplete() {
 				log.Print("Action completed.")
@@ -75,7 +75,7 @@ func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-c
 		case <-stepChan:
 			if !act.IsComplete() {
 				if act.StepTimeout() {
-					return fmt.Errorf("action %s step timeout", act.ToJSON())
+					return fmt.Errorf("step timeout %s", act.ToJSON())
 				}
 				// Push the current action's next step to the server.
 				actionChan <- act
