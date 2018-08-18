@@ -47,7 +47,7 @@ func (ac *ActionCache) SetEvent(name string, m Message, pi *ProtocolIds) error {
 	ac.a.Lock()
 	defer ac.a.Unlock()
 
-	if err := ac.a.Page.CheckFrameId(pi); err != nil {
+	if err := ac.a.Page.CheckFrameID(pi); err != nil {
 		// When the frame ID differs, it indicates that this Event is not intended for this Action.
 		// In other words a different Action needs to consume this event.
 		return nil
@@ -80,7 +80,7 @@ func (ac *ActionCache) SetResult(m Message, pi *ProtocolIds) error {
 	ac.a.Lock()
 	defer ac.a.Unlock()
 
-	if err := ac.a.Page.CheckFrameId(pi); err != nil {
+	if err := ac.a.Page.CheckFrameID(pi); err != nil {
 		ac.a.log()
 		return err
 	}

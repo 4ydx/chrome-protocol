@@ -12,6 +12,7 @@ import (
 	"time"
 )
 
+// GetWebsocket returns a websocket connection to the running browser.
 func GetWebsocket() *websocket.Conn {
 	r, err := http.Get("http://localhost:9222/json")
 	if err != nil {
@@ -51,6 +52,7 @@ func GetWebsocket() *websocket.Conn {
 	return c
 }
 
+// Read reads replies from the server over the websocket.
 func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache, shutdown chan<- struct{}) {
 	defer func() {
 		log.Println("Shutdown due to socket connection going away.")
@@ -97,6 +99,7 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache, shut
 	}
 }
 
+// Write writes requests to the server over the websocket.
 func Write(c *websocket.Conn, actionChan <-chan *Action, ac *ActionCache, shutdown, allComplete <-chan struct{}) {
 	osInterrupt := make(chan os.Signal, 1)
 	signal.Notify(osInterrupt, os.Interrupt)
@@ -125,6 +128,7 @@ func Write(c *websocket.Conn, actionChan <-chan *Action, ac *ActionCache, shutdo
 	}
 }
 
+// SendClose closes the websocket.
 func SendClose(c *websocket.Conn, shutdown <-chan struct{}) {
 	// Cleanly close the connection by sending a close message and then waiting (with timeout) for the server to close the connection.
 	err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))

@@ -20,10 +20,13 @@ var (
 	// ShutDown will be closed when reading the websocket is no longer possible.
 	ShutDown chan struct{}
 
+	// StepChan sends the signal that a step has been completed and an Action can advance.
 	StepChan chan struct{}
 
+	// ActionChan sends Actions to the websocket.
 	ActionChan chan *Action
 
+	// Cache stores the Action that is currently active.
 	Cache *ActionCache
 )
 
