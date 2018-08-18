@@ -3,7 +3,6 @@ package cdp
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/4ydx/cdproto"
 	"github.com/gorilla/websocket"
 	"io/ioutil"
 	"log"
@@ -63,21 +62,36 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache, shut
 			log.Println("Read error:", err)
 			return
 		}
-		m := cdproto.Message{}
-		err = m.UnmarshalJSON(message)
+		m := Message{}
+		err = json.Unmarshal(message, &m)
 		if err != nil {
 			log.Fatal("Unmarshal error:", err)
 		}
 		log.Printf(".RAW: %s\n", message)
+		// log.Printf(".DEC: %+v\n", m)
 
-		if ac.HasStepId(m.ID) {
-			ac.SetResult(m)
+		pi, err := UnmarshalIds(m)
+		if err != nil {
+			log.Fatal("Unmarshal error:", err)
+		}
+		log.Printf(".IDS: %+v\n", pi)
+
+		if ac.HasStepID(m.ID) {
+			err := ac.SetResult(m, pi)
+			if err != nil {
+				log.Fatal(err)
+			}
 			stepComplete <- struct{}{}
 		} else {
 			log.Printf("Checking MethodType %s\n", m.Method)
 			// Check for events related to the current Action
 			if ac.HasEvent(m.Method) {
-				ac.SetEventResult(m.Method, m)
+				err := ac.SetEvent(m.Method, m, pi)
+				if err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				log.Printf("Skipping event %s %s %s\n", m.Method, m.Params, m.Result)
 			}
 		}
 	}
@@ -93,7 +107,9 @@ func Write(c *websocket.Conn, actionChan <-chan *Action, ac *ActionCache, shutdo
 			log.Println("Shutdown.")
 			return
 		case action := <-actionChan:
+			fmt.Println("FUCK")
 			log.Printf("!REQ: %s\n", action.ToJSON())
+			fmt.Println("FUCK")
 			ac.Set(action)
 
 			err := c.WriteMessage(websocket.TextMessage, action.ToJSON())
@@ -120,8 +136,8 @@ func SendClose(c *websocket.Conn, shutdown <-chan struct{}) {
 	}
 	select {
 	case <-shutdown:
-		log.Println("SendClose done")
+		log.Println("SendClose done.")
 	case <-time.After(time.Second * 5):
-		log.Println("SendClose timeout")
+		log.Println("SendClose timeout.")
 	}
 }

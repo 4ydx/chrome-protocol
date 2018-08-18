@@ -8,16 +8,27 @@ import (
 )
 
 var (
-	Conn        *websocket.Conn
+	// Conn is the connection to the websocket.
+	Conn *websocket.Conn
+
+	// AllComplete receives empty structs and will trigger a close on the websocket.
+	// Typically AllComplete or the OsInterrupt channels will fire, triggering a close
+	// of the websocket connection via the write loop.  This, in turn, will cause the
+	// the write loop to wait for the shutdown channel to be closed or a timeout to be issued.
 	AllComplete chan struct{}
-	ShutDown    chan struct{}
-	StepChan    chan struct{}
-	ActionChan  chan *Action
-	Cache       *ActionCache
+
+	// ShutDown will be closed when reading the websocket is no longer possible.
+	ShutDown chan struct{}
+
+	StepChan chan struct{}
+
+	ActionChan chan *Action
+
+	Cache *ActionCache
 )
 
 // Start prepares required resources to begin automation.
-func Start() *ID {
+func Start() *Page {
 	f, err := os.Create("log.txt")
 	if err != nil {
 		panic(err)
@@ -26,7 +37,7 @@ func Start() *ID {
 	log.SetOutput(f)
 
 	Conn = GetWebsocket()
-	Cache = NewActionCache()
+	Cache = &ActionCache{}
 	ShutDown = make(chan struct{})
 	AllComplete = make(chan struct{})
 
@@ -36,11 +47,14 @@ func Start() *ID {
 	go Write(Conn, ActionChan, Cache, ShutDown, AllComplete)
 	go Read(Conn, StepChan, Cache, ShutDown)
 
-	id := &ID{
+	page := &Page{
 		RWMutex: &sync.RWMutex{},
-		Value:   11111,
+		ID: ID{
+			RWMutex: &sync.RWMutex{},
+			Value:   11111,
+		},
 	}
-	return id
+	return page
 }
 
 // Stop closes used resources.
@@ -48,5 +62,4 @@ func Stop() {
 	defer Conn.Close()
 
 	AllComplete <- struct{}{}
-	<-ShutDown
 }

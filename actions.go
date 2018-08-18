@@ -2,47 +2,55 @@ package cdp
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"sync"
 	"time"
 )
 
+// Wait is the default timeout taken as the action wait loop runs.
+// The loop's select is triggered and the action will be checked for completion.
 var Wait = time.Millisecond * 50
 
+// Event holds the value returned by the server based on a matching MethodType name.
 type Event struct {
 	Name       string
 	Value      json.Unmarshaler
 	IsRequired bool
 	IsFound    bool
-	OnEvent    func(Event) // Callback for accessing the event
 }
 
+// Step represents a single json request sent to the server over the websocket.
 type Step struct {
-	// Values required to make a chrome devtools protocol request
-	Id     int64          `json:"id"`
-	Method string         `json:"method"`
-	Params json.Marshaler `json:"params"`
+	// Values required to make a chrome devtools protocol request.
+	ID     int64            `json:"id"`
+	Method string           `json:"method,omitempty"`
+	Params json.Unmarshaler `json:"params,omitempty"`
 
-	Returns         json.Unmarshaler `json:"-"` // The struct that will be filled when a matching step Id is found in a reply over the chrome websocket.
+	Reply           json.Unmarshaler `json:"-"` // The struct that will be filled when a matching step Id is found in a reply over the chrome websocket.
 	Timeout         time.Duration    `json:"-"` // How long until the current step experiences a timeout, which will halt the entire process.
 	PreviousReturns func()           `json:"-"` // Method defined by the user to take the previous step's Returns and apply them to the current step's Params.
 }
 
+// Action represents a collection of json requests (steps) and any events that those requests might trigger that need to be tracked.
+// TODO: I'm not sure that multiple steps are really required here.  It might be less confusing if the Step was folded into the Action,
+//       so that one action == one json api call across the websocket.
 type Action struct {
 	*sync.RWMutex
 	Steps     []Step
 	StepIndex int
 	Events    map[string]Event
 	Start     *time.Time
+	Page      *Page
 }
 
-func NewAction(events []Event, steps []Step) *Action {
+// NewAction returns a newly created action with any events that will be triggered by steps the action will take.
+func NewAction(page *Page, events []Event, steps []Step) *Action {
 	act := &Action{
 		RWMutex: &sync.RWMutex{},
 		Events:  make(map[string]Event),
 		Steps:   steps,
+		Page:    page,
 	}
 	for _, e := range events {
 		act.Events[e.Name] = e
@@ -57,7 +65,7 @@ func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-c
 		select {
 		case <-time.After(Wait):
 			if !act.IsComplete() && act.StepTimeout() {
-				return errors.New(fmt.Sprintf("Action %s step timeout\n", act.ToJSON()))
+				return fmt.Errorf("ction %s step timeout", act.ToJSON())
 			}
 			if act.IsComplete() && ac.EventsComplete() {
 				log.Print("Action completed.")
@@ -67,7 +75,7 @@ func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-c
 		case <-stepChan:
 			if !act.IsComplete() {
 				if act.StepTimeout() {
-					return errors.New(fmt.Sprintf("Action %s step timeout\n", act.ToJSON()))
+					return fmt.Errorf("action %s step timeout", act.ToJSON())
 				}
 				// Push the current action's next step to the server.
 				actionChan <- act
@@ -128,10 +136,11 @@ func (act *Action) Run() error {
 	return act.wait(ActionChan, Cache, StepChan)
 }
 
-func (act *Action) Log() {
+// Log writes the current state of the action to the log.
+func (act *Action) log() {
 	log.Printf("Act %+v\n", act)
 	for _, step := range act.Steps {
-		log.Printf("Step %d Params %+v", step.Id, step.Params)
-		log.Printf("Step %d Return %+v", step.Id, step.Returns)
+		log.Printf("Step %d Params %+v", step.ID, step.Params)
+		log.Printf("Step %d Return %+v", step.ID, step.Reply)
 	}
 }
