@@ -35,7 +35,5 @@ func main() {
 
 	log.Print("\n-- All completed --\n")
 
-	time.Sleep(10 * time.Second)
-
 	cdp.Stop()
 }
