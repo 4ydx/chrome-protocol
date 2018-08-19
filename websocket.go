@@ -72,14 +72,8 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache, shut
 		log.Printf(".RAW: %s\n", message)
 		// log.Printf(".DEC: %+v\n", m)
 
-		pi, err := UnmarshalIds(m)
-		if err != nil {
-			log.Fatal("Unmarshal error:", err)
-		}
-		log.Printf(".IDS: %+v\n", pi)
-
 		if ac.HasStepID(m.ID) {
-			err := ac.SetResult(m, pi)
+			err := ac.SetResult(m)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -88,7 +82,13 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache, shut
 			log.Printf("Checking MethodType %s\n", m.Method)
 			// Check for events related to the current Action
 			if ac.HasEvent(m.Method) {
-				err := ac.SetEvent(m.Method, m, pi)
+				pi, err := UnmarshalIds(m)
+				if err != nil {
+					log.Fatal("Unmarshal error:", err)
+				}
+				log.Printf(".IDS: %+v\n", pi)
+
+				err = ac.SetEvent(m.Method, m, pi)
 				if err != nil {
 					log.Fatal(err)
 				}

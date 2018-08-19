@@ -73,26 +73,28 @@ func (ac *ActionCache) SetEvent(name string, m Message, pi *ProtocolIds) error {
 }
 
 // SetResult applies the message returns to the current step and advances the step.
-func (ac *ActionCache) SetResult(m Message, pi *ProtocolIds) error {
+//func (ac *ActionCache) SetResult(m Message, pi *ProtocolIds) error {
+func (ac *ActionCache) SetResult(m Message) error {
 	if ac.a == nil {
 		log.Fatal("Nil pointer")
 	}
 	ac.a.Lock()
 	defer ac.a.Unlock()
 
-	if err := ac.a.Page.CheckFrameID(pi); err != nil {
-		ac.a.log()
-		return err
-	}
 	s := ac.a.Steps[ac.a.StepIndex]
-	err := s.Reply.UnmarshalJSON(m.Result)
-	if err != nil {
-		log.Fatalf("Unmarshal error: %s", err)
+	frameID := ac.a.Page.GetFrameID()
+	if frameID == "" {
+		ac.a.Page.SetFrameID(frameID)
+		err := s.Reply.UnmarshalJSON(m.Result)
+		if err != nil {
+			log.Fatalf("Unmarshal error: %s", err)
+		}
+	} else {
+		if ok := s.Reply.MatchFrameID(frameID, m.Result); !ok {
+			log.Printf("No matching frameID")
+			return nil
+		}
 	}
-
-	// TODO: Check to see that the frameID is correct. if not, clear the object of the marshaling changes and do not increment the step.
-	// NEED: a CheckFrameID method.  The Returns needs to have Unmarshalling as well as a new CheckFrameID method...
-
 	ac.a.StepIndex++
 
 	log.Printf(".STP COMPLETE: %+v\n", s)

@@ -32,17 +32,20 @@ func FindFirstElementNodeId(pg *cdp.Page, find string, timeout time.Duration) (d
 	target := dom.NodeID(0)
 	for _, child := range nodes {
 		if child.NodeType == 1 {
-			// Is element node.
+			// Is node of type 'element'.
 			target = child.NodeID
 			break
 		}
+	}
+	if target == 0 {
+		return 0, errors.New("No element (NodeType 1) found within matching nodes.")
 	}
 	return target, nil
 }
 
 // FindAll finds all nodes using XPath, CSS selector, or text.
-func FindAll(pg *cdp.Page, find string, timeout time.Duration) ([]*dom.Node, error) {
-	found := make([]*dom.Node, 0)
+func FindAll(pg *cdp.Page, find string, timeout time.Duration) ([]dom.Node, error) {
+	found := make([]dom.Node, 0)
 
 	doc, err := GetEntireDocument(pg, timeout)
 	if err != nil {
@@ -68,7 +71,6 @@ func FindAll(pg *cdp.Page, find string, timeout time.Duration) ([]*dom.Node, err
 	}
 
 	// Retrieve the NodeIds.
-	log.Printf("Using search id %s with result count %d", ret.SearchID, ret.ResultCount)
 	params := &dom.GetSearchResultsArgs{
 		SearchID:  ret.SearchID,
 		FromIndex: 0,
@@ -88,11 +90,10 @@ func FindAll(pg *cdp.Page, find string, timeout time.Duration) ([]*dom.Node, err
 	for _, child := range doc.Nodes {
 		for _, id := range hits.NodeIDs {
 			if id == child.NodeID {
-				found = append(found, &child)
+				found = append(found, child)
 			}
 		}
 	}
-
 	return found, nil
 }
 
@@ -110,7 +111,6 @@ func Focus(pg *cdp.Page, find string, timeout time.Duration) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	return nil
 }
 

@@ -29,3 +29,17 @@ func (p *Page) CheckFrameID(pi *ProtocolIds) error {
 	}
 	return nil
 }
+
+func (p *Page) GetFrameID() string {
+	p.RLock()
+	defer p.RUnlock()
+
+	return p.FrameID
+}
+
+func (p *Page) SetFrameID(frameID string) {
+	p.Lock()
+	defer p.Unlock()
+
+	p.FrameID = frameID
+}

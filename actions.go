@@ -12,6 +12,11 @@ import (
 // The loop's select is triggered and the action will be checked for completion.
 var Wait = time.Millisecond * 50
 
+type StepReply interface {
+	json.Unmarshaler
+	MatchFrameID(frameID string, m []byte) bool
+}
+
 // Event holds the value returned by the server based on a matching MethodType name.
 type Event struct {
 	Name       string
@@ -27,9 +32,9 @@ type Step struct {
 	Method string         `json:"method,omitempty"`
 	Params json.Marshaler `json:"params,omitempty"`
 
-	Reply           json.Unmarshaler `json:"-"` // The struct that will be filled when a matching step Id is found in a reply over the chrome websocket.
-	Timeout         time.Duration    `json:"-"` // How long until the current step experiences a timeout, which will halt the entire process.
-	PreviousReturns func()           `json:"-"` // Method defined by the user to take the previous step's Returns and apply them to the current step's Params.
+	Reply           StepReply     `json:"-"` // The struct that will be filled when a matching step Id is found in a reply over the chrome websocket.
+	Timeout         time.Duration `json:"-"` // How long until the current step experiences a timeout, which will halt the entire process.
+	PreviousReturns func()        `json:"-"` // Method defined by the user to take the previous step's Returns and apply them to the current step's Params.
 }
 
 // Action represents a collection of json requests (steps) and any events that those requests might trigger that need to be tracked.
