@@ -64,12 +64,13 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache, shut
 			log.Println("Read error:", err)
 			return
 		}
+		log.Printf(".RAW: %s\n", message)
+
 		m := Message{}
 		err = json.Unmarshal(message, &m)
 		if err != nil {
 			log.Fatal("Unmarshal error:", err)
 		}
-		log.Printf(".RAW: %s\n", message)
 		// log.Printf(".DEC: %+v\n", m)
 
 		if ac.HasStepID(m.ID) {
@@ -79,7 +80,6 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache, shut
 			}
 			stepComplete <- struct{}{}
 		} else {
-			log.Printf("Checking MethodType %s\n", m.Method)
 			// Check for events related to the current Action
 			if ac.HasEvent(m.Method) {
 				pi, err := UnmarshalIds(m)
@@ -93,7 +93,7 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache, shut
 					log.Fatal(err)
 				}
 			} else {
-				log.Printf("Skipping event %s %s %s\n", m.Method, m.Params, m.Result)
+				log.Printf("SKIP event %s %s %s\n", m.Method, m.Params, m.Result)
 			}
 		}
 	}
