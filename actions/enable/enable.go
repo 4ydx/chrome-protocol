@@ -16,7 +16,6 @@ func All(pg *cdp.Page, timeout time.Duration) error {
 	// Order is important.  Dom should come first.
 	return cdp.NewAction(pg, []cdp.Event{}, []cdp.Step{
 		cdp.Step{ID: pg.ID.GetNext(), Method: dom.CommandDOMEnable, Params: &dom.EnableArgs{}, Reply: &dom.EnableReply{}, Timeout: timeout},
-
 		cdp.Step{ID: pg.ID.GetNext(), Method: css.CommandCSSEnable, Params: &css.EnableArgs{}, Reply: &css.EnableReply{}, Timeout: timeout},
 		cdp.Step{ID: pg.ID.GetNext(), Method: inspector.CommandInspectorEnable, Params: &inspector.EnableArgs{}, Reply: &inspector.EnableReply{}, Timeout: timeout},
 		cdp.Step{ID: pg.ID.GetNext(), Method: log.CommandLogEnable, Params: &log.EnableArgs{}, Reply: &log.EnableReply{}, Timeout: timeout},
