@@ -137,19 +137,6 @@ func Click(pg *cdp.Page, find string, timeout time.Duration) error {
 	yMid := (box[5]-box[1])/2 + box[1]
 
 	// Mouse click.
-	/*
-		clicks := []string{"mousePressed", "mouseReleased"}
-		for _, click := range clicks {
-			a1 := cdp.NewAction(pg, []cdp.Event{},
-				[]cdp.Step{
-					cdp.Step{ID: pg.ID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: click}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
-				})
-			err := a1.Run()
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-	*/
 	err = cdp.NewAction(pg, []cdp.Event{},
 		[]cdp.Step{
 			cdp.Step{ID: pg.ID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mousePressed"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
