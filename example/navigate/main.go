@@ -11,7 +11,7 @@ import (
 func main() {
 	frame := cdp.Start()
 
-	// Enable all communication with chrome
+	// Enable page events
 	if err := enable.Page(frame, time.Second*2); err != nil {
 		panic(err)
 	}
