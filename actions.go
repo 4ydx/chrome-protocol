@@ -46,11 +46,11 @@ type Action struct {
 	StepIndex int
 	Events    map[string]Event
 	Start     *time.Time
-	Page      *Page
+	Page      *Frame
 }
 
 // NewAction returns a newly created action with any events that will be triggered by steps the action will take.
-func NewAction(page *Page, events []Event, steps []Step) *Action {
+func NewAction(page *Frame, events []Event, steps []Step) *Action {
 	act := &Action{
 		RWMutex: &sync.RWMutex{},
 		Events:  make(map[string]Event),

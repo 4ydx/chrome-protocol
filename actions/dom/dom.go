@@ -10,10 +10,10 @@ import (
 )
 
 // GetEntireDocument retrieves the root document and all children for the entire page.
-func GetEntireDocument(pg *cdp.Page, timeout time.Duration) (*dom.GetFlattenedDocumentReply, error) {
+func GetEntireDocument(pg *cdp.Frame, timeout time.Duration) (*dom.GetFlattenedDocumentReply, error) {
 	a0 := cdp.NewAction(pg, []cdp.Event{},
 		[]cdp.Step{
-			cdp.Step{ID: pg.ID.GetNext(), Method: dom.CommandDOMGetFlattenedDocument, Params: &dom.GetFlattenedDocumentArgs{Depth: -1}, Reply: &dom.GetFlattenedDocumentReply{}, Timeout: timeout},
+			cdp.Step{ID: pg.RequestID.GetNext(), Method: dom.CommandDOMGetFlattenedDocument, Params: &dom.GetFlattenedDocumentArgs{Depth: -1}, Reply: &dom.GetFlattenedDocumentReply{}, Timeout: timeout},
 		})
 	err := a0.Run()
 
@@ -21,7 +21,7 @@ func GetEntireDocument(pg *cdp.Page, timeout time.Duration) (*dom.GetFlattenedDo
 }
 
 // FindFirstElementNodeId gets the first element's nodeId using XPath, Css selector, or text matches with the find parameter.
-func FindFirstElementNodeId(pg *cdp.Page, find string, timeout time.Duration) (dom.NodeID, error) {
+func FindFirstElementNodeId(pg *cdp.Frame, find string, timeout time.Duration) (dom.NodeID, error) {
 	nodes, err := FindAll(pg, find, timeout)
 	if err != nil {
 		return 0, err
@@ -44,7 +44,7 @@ func FindFirstElementNodeId(pg *cdp.Page, find string, timeout time.Duration) (d
 }
 
 // FindAll finds all nodes using XPath, CSS selector, or text.
-func FindAll(pg *cdp.Page, find string, timeout time.Duration) ([]dom.Node, error) {
+func FindAll(pg *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, error) {
 	found := make([]dom.Node, 0)
 
 	doc, err := GetEntireDocument(pg, timeout)
@@ -56,7 +56,7 @@ func FindAll(pg *cdp.Page, find string, timeout time.Duration) ([]dom.Node, erro
 	a0 := cdp.NewAction(pg,
 		[]cdp.Event{},
 		[]cdp.Step{
-			cdp.Step{ID: pg.ID.GetNext(), Method: dom.CommandDOMPerformSearch, Params: &dom.PerformSearchArgs{Query: find}, Reply: &dom.PerformSearchReply{}, Timeout: timeout},
+			cdp.Step{ID: pg.RequestID.GetNext(), Method: dom.CommandDOMPerformSearch, Params: &dom.PerformSearchArgs{Query: find}, Reply: &dom.PerformSearchReply{}, Timeout: timeout},
 		})
 	err = a0.Run()
 	if err != nil {
@@ -78,7 +78,7 @@ func FindAll(pg *cdp.Page, find string, timeout time.Duration) ([]dom.Node, erro
 	}
 	a1 := cdp.NewAction(pg, []cdp.Event{},
 		[]cdp.Step{
-			cdp.Step{ID: pg.ID.GetNext(), Method: dom.CommandDOMGetSearchResults, Params: params, Reply: &dom.GetSearchResultsReply{}, Timeout: timeout},
+			cdp.Step{ID: pg.RequestID.GetNext(), Method: dom.CommandDOMGetSearchResults, Params: params, Reply: &dom.GetSearchResultsReply{}, Timeout: timeout},
 		})
 	err = a1.Run()
 	if err != nil {
@@ -98,14 +98,14 @@ func FindAll(pg *cdp.Page, find string, timeout time.Duration) ([]dom.Node, erro
 }
 
 // Focus on the first element node that matches the find parameter.
-func Focus(pg *cdp.Page, find string, timeout time.Duration) error {
+func Focus(pg *cdp.Frame, find string, timeout time.Duration) error {
 	target, err := FindFirstElementNodeId(pg, find, timeout)
 	if err != nil {
 		return err
 	}
 	err = cdp.NewAction(pg, []cdp.Event{},
 		[]cdp.Step{
-			cdp.Step{ID: pg.ID.GetNext(), Method: dom.CommandDOMFocus, Params: &dom.FocusArgs{NodeID: target}, Reply: &dom.FocusReply{}, Timeout: timeout},
+			cdp.Step{ID: pg.RequestID.GetNext(), Method: dom.CommandDOMFocus, Params: &dom.FocusArgs{NodeID: target}, Reply: &dom.FocusReply{}, Timeout: timeout},
 		}).Run()
 	if err != nil {
 		log.Fatal(err)
@@ -115,14 +115,14 @@ func Focus(pg *cdp.Page, find string, timeout time.Duration) error {
 
 // Click on the first element matching the find parameter.
 // nodeID -> DOM.getBoxModel -> Input.dispatchMouseEvent to issue mousedown+mouseup
-func Click(pg *cdp.Page, find string, timeout time.Duration) error {
+func Click(pg *cdp.Frame, find string, timeout time.Duration) error {
 	target, err := FindFirstElementNodeId(pg, find, timeout)
 	if err != nil {
 		return err
 	}
 	a0 := cdp.NewAction(pg, []cdp.Event{},
 		[]cdp.Step{
-			cdp.Step{ID: pg.ID.GetNext(), Method: dom.CommandDOMGetBoxModel, Params: &dom.GetBoxModelArgs{NodeID: target}, Reply: &dom.GetBoxModelReply{}, Timeout: timeout},
+			cdp.Step{ID: pg.RequestID.GetNext(), Method: dom.CommandDOMGetBoxModel, Params: &dom.GetBoxModelArgs{NodeID: target}, Reply: &dom.GetBoxModelReply{}, Timeout: timeout},
 		})
 	err = a0.Run()
 	if err != nil {
@@ -139,8 +139,8 @@ func Click(pg *cdp.Page, find string, timeout time.Duration) error {
 	// Mouse click.
 	err = cdp.NewAction(pg, []cdp.Event{},
 		[]cdp.Step{
-			cdp.Step{ID: pg.ID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mousePressed"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
-			cdp.Step{ID: pg.ID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mouseReleased"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
+			cdp.Step{ID: pg.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mousePressed"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
+			cdp.Step{ID: pg.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mouseReleased"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
 		}).Run()
 	if err != nil {
 		log.Fatal(err)

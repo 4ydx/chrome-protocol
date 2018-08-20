@@ -10,30 +10,32 @@ import (
 )
 
 func main() {
-	id := cdp.Start()
+	frame := cdp.Start()
 
 	// Enable communication with chrome
-	if err := enable.Page(id, time.Second*2); err != nil {
+	if err := enable.Page(frame, time.Second*2); err != nil {
 		panic(err)
 	}
-	if err := enable.Dom(id, time.Second*2); err != nil {
+	if err := enable.Dom(frame, time.Second*2); err != nil {
 		panic(err)
 	}
-	if err := enable.Network(id, time.Second*2); err != nil {
+	if err := enable.Network(frame, time.Second*2); err != nil {
 		panic(err)
 	}
 
 	// Navigate
-	if err := page.Navigate(id, "https://google.com", time.Second*5); err != nil {
+	if err := page.Navigate(frame, "https://google.com", time.Second*5); err != nil {
 		panic(err)
 	}
 
 	// Click
-	if err := dom.Click(id, "gb_70", time.Second*5); err != nil {
+	if err := dom.Click(frame, "gb_70", time.Second*5); err != nil {
 		panic(err)
 	}
 
-	log.Print("\n-- All completed --\n")
+	log.Printf("\n-- All completed for %s --\n", frame.FrameID)
+
+	// TODO: frameStoppedLoading for the current FrameID.
 
 	cdp.Stop()
 }

@@ -45,14 +45,14 @@ func UnmarshalIds(m Message) (*ProtocolIds, error) {
 	return pi, err
 }
 
-// ID stores the last value used for chrome devtool protocal requests being sent to the server.
-type ID struct {
+// RequestID stores the last value used for chrome devtool protocal requests being sent to the server.
+type RequestID struct {
 	*sync.RWMutex
 	Value int64
 }
 
 // GetNext is a convenience method for creating the unique ids required when performing chrome devtool protocol requests.
-func (id *ID) GetNext() int64 {
+func (id *RequestID) GetNext() int64 {
 	id.Lock()
 	id.Value++
 	v := id.Value

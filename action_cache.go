@@ -15,7 +15,7 @@ func (ac *ActionCache) Set(a *Action) {
 	a.Lock()
 	defer a.Unlock()
 
-	log.Printf("Set action %+v\n", a)
+	log.Printf(".SET action %+v\n", a)
 	ac.a = a
 }
 

@@ -6,18 +6,18 @@ import (
 	"sync"
 )
 
-// Page stores the current FrameID.
-type Page struct {
+// Frame stores the current FrameID.
+type Frame struct {
 	*sync.RWMutex
-	DOM      *dom.GetFlattenedDocumentReply
-	FrameID  string
-	LoaderID string
-	ID       ID
+	DOM       *dom.GetFlattenedDocumentReply
+	FrameID   string
+	LoaderID  string
+	RequestID RequestID
 }
 
 // CheckFrameID attempts to validate the FrameID.
 // This will likely change.
-func (p *Page) CheckFrameID(pi *ProtocolIds) error {
+func (p *Frame) CheckFrameID(pi *ProtocolIds) error {
 	p.Lock()
 	defer p.Unlock()
 
@@ -30,14 +30,14 @@ func (p *Page) CheckFrameID(pi *ProtocolIds) error {
 	return nil
 }
 
-func (p *Page) GetFrameID() string {
+func (p *Frame) GetFrameID() string {
 	p.RLock()
 	defer p.RUnlock()
 
 	return p.FrameID
 }
 
-func (p *Page) SetFrameID(frameID string) {
+func (p *Frame) SetFrameID(frameID string) {
 	p.Lock()
 	defer p.Unlock()
 

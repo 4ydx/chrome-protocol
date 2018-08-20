@@ -3,6 +3,7 @@ package cdp
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/4ydx/cdp/protocol/lib"
 	"github.com/gorilla/websocket"
 	"io/ioutil"
 	"log"
@@ -93,7 +94,24 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache, shut
 					log.Fatal(err)
 				}
 			} else {
-				log.Printf("SKIP event %s %s %s\n", m.Method, m.Params, m.Result)
+				e, ok := lib.GetEventUnmarshaler(m.Method)
+				if ok {
+					if len(m.Result) > 0 {
+						err := e.UnmarshalJSON(m.Result)
+						if err != nil {
+							log.Fatal("Unmarshal error:", err, m.Result)
+						}
+					}
+					if len(m.Params) > 0 {
+						err := e.UnmarshalJSON(m.Params)
+						if err != nil {
+							log.Fatal("Unmarshal error:", err, m.Params)
+						}
+					}
+					log.Printf(".GOT event %+v\n", e)
+				} else {
+					log.Printf(".SKP event %s %s %s\n", m.Method, m.Params, m.Result)
+				}
 			}
 		}
 	}

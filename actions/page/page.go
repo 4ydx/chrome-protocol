@@ -7,13 +7,13 @@ import (
 )
 
 // Navigate sends the browser to the given URL
-func Navigate(pg *cdp.Page, url string, timeout time.Duration) error {
+func Navigate(pg *cdp.Frame, url string, timeout time.Duration) error {
 	return cdp.NewAction(pg,
 		[]cdp.Event{
 			cdp.Event{Name: page.EventPageFrameStartedLoading, Value: &page.FrameStartedLoadingReply{}, IsRequired: true},
 			cdp.Event{Name: page.EventPageFrameStoppedLoading, Value: &page.FrameStoppedLoadingReply{}, IsRequired: true},
 		},
 		[]cdp.Step{
-			cdp.Step{ID: pg.ID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
+			cdp.Step{ID: pg.RequestID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
 		}).Run()
 }

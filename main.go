@@ -31,12 +31,13 @@ var (
 )
 
 // Start prepares required resources to begin automation.
-func Start() *Page {
+func Start() *Frame {
 	f, err := os.Create("log.txt")
 	if err != nil {
 		panic(err)
 	}
-	log.SetFlags(log.Lshortfile | log.LstdFlags | log.Lmicroseconds)
+	//log.SetFlags(log.Lshortfile | log.LstdFlags | log.Lmicroseconds)
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 	log.SetOutput(f)
 
 	Conn = GetWebsocket()
@@ -50,9 +51,9 @@ func Start() *Page {
 	go Write(Conn, ActionChan, Cache, ShutDown, AllComplete)
 	go Read(Conn, StepChan, Cache, ShutDown)
 
-	page := &Page{
+	page := &Frame{
 		RWMutex: &sync.RWMutex{},
-		ID: ID{
+		RequestID: RequestID{
 			RWMutex: &sync.RWMutex{},
 			Value:   11111,
 		},
