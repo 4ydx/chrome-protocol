@@ -20,17 +20,15 @@ I will be working on other actions as I need them for my own personal projects.
 
 # Creating your own Actions
 
-The underlying implementation is a websocket that sends and receives json encoded plaintext messages.
-
 Actions are the requests that you make to the browser in order to automate different tasks.  For instance asking
-the browser to navigate to a particular url.  When you construct an Action you need to fill in a step that consists
-of the params struct and the reply struct.  In addition you need to specify the API call you are making which is
-otherwise known as the MethodName.  These are all defined in the [Devtools Reference](https://chromedevtools.github.io/devtools-protocol/tot).
+the browser to navigate to a particular url.  When you construct an action you need to fill in at least one "step" that consists
+of the params struct, the reply struct, and the method name of the API call you are making.  Finally it is possible to associate events
+that the server will send to the client with your action.
 
-If your action is going to trigger events that you need to watch for, make sure to include them.
+Please refer to example/navigate and look at the internals of the method calls for a basic example.  
+This shows an action that consists of a single step and depends on certain navigation events being fulfilled before the action is considered complete.
 
-Please refer to example/navigate for a basic example.  This shows an action that consists of a single step and depends on certain
-navigation events being fulfilled before the action is considered complete.
+API methods, events, and types are all defined in the [Devtools Reference](https://chromedevtools.github.io/devtools-protocol/tot).
 
 # Caveats
 
