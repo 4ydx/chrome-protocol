@@ -62,6 +62,22 @@ This shows an action that consists of a single step and depends on certain navig
 
 API methods, events, and types are all defined in the [Devtools Reference](https://chromedevtools.github.io/devtools-protocol/tot).
 
+Possible Navigation Method:
+
+```
+func Navigate(pg *cdp.Frame, url string, timeout time.Duration) error {
+	return cdp.NewAction(pg,
+		[]cdp.Event{
+			cdp.Event{Name: page.EventPageFrameNavigated, Value: &page.FrameNavigatedReply{}, IsRequired: true},
+			cdp.Event{Name: page.EventPageFrameStartedLoading, Value: &page.FrameStartedLoadingReply{}, IsRequired: true},
+			cdp.Event{Name: page.EventPageFrameStoppedLoading, Value: &page.FrameStoppedLoadingReply{}, IsRequired: true},
+		},
+		[]cdp.Step{
+			cdp.Step{ID: pg.RequestID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
+		}).Run()
+}
+```
+
 # Caveats
 
 Currently there is no code for opening a browser.  There is a start.sh script that shows how to manually start a browser.  
