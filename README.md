@@ -18,6 +18,38 @@ Examples of basic actions are included in the example folder.
 
 I will be working on other actions as I need them for my own personal projects.
 
+Navigation example:
+
+```
+package main
+
+import (
+	"github.com/4ydx/chrome-protocol"
+	"github.com/4ydx/chrome-protocol/actions/enable"
+	"github.com/4ydx/chrome-protocol/actions/page"
+	"log"
+	"time"
+)
+
+func main() {
+	frame := cdp.Start()
+
+	// Enable all communication with chrome
+	if err := enable.Page(frame, time.Second*2); err != nil {
+		panic(err)
+	}
+
+	// Navigate
+	if err := page.Navigate(frame, "https://google.com", time.Second*5); err != nil {
+		panic(err)
+	}
+
+	log.Printf("\n-- All completed for %s --\n", frame.FrameID)
+
+	cdp.Stop()
+}
+```
+
 # Creating your own Actions
 
 Actions are the requests that you make to the browser in order to automate different tasks.  For instance asking
