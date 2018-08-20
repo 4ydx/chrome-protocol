@@ -10,8 +10,3 @@ supports the protocol).
 # Creating your own actions
 
 TODO
-
-## API
-
-Please see the [GoDoc listing][godoc].
-
