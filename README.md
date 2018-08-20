@@ -57,9 +57,6 @@ the browser to navigate to a particular url.  When you construct an action you n
 of the params struct, the reply struct, and the method name of the API call you are making.  Finally it is possible to associate events
 that the server will send to the client with your action.
 
-Please refer to example/navigate and look at the internals of the method calls for a basic example.  
-This shows an action that consists of a single step and depends on certain navigation events being fulfilled before the action is considered complete.
-
 API methods, events, and types are all defined in the [Devtools Reference](https://chromedevtools.github.io/devtools-protocol/tot).
 
 Possible Navigation Method:
