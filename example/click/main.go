@@ -38,7 +38,5 @@ func main() {
 
 	log.Printf("\n-- All completed for %s --\n", frame.FrameID)
 
-	// TODO: frameStoppedLoading for the current FrameID.
-
 	cdp.Stop()
 }

@@ -11,32 +11,32 @@ import (
 )
 
 func main() {
-	pg := cdp.Start()
+	frame := cdp.Start()
 
 	// Enable communication with chrome
-	if err := enable.Page(pg, time.Second*2); err != nil {
+	if err := enable.Page(frame, time.Second*2); err != nil {
 		panic(err)
 	}
-	if err := enable.Dom(pg, time.Second*2); err != nil {
+	if err := enable.Dom(frame, time.Second*2); err != nil {
 		panic(err)
 	}
 
 	// Navigate
-	if err := page.Navigate(pg, "https://google.com", time.Second*5); err != nil {
+	if err := page.Navigate(frame, "https://google.com", time.Second*5); err != nil {
 		panic(err)
 	}
 
 	// Focus
-	if err := dom.Focus(pg, "#lst-ib", time.Second*5); err != nil {
+	if err := dom.Focus(frame, "#lst-ib", time.Second*5); err != nil {
 		panic(err)
 	}
 
 	// Fill
-	if err := input.Fill(pg, "testing", time.Second*5); err != nil {
+	if err := input.Fill(frame, "testing", time.Second*5); err != nil {
 		panic(err)
 	}
 
-	log.Print("\n-- All completed --\n")
+	log.Printf("\n-- All completed for %s --\n", frame.FrameID)
 
 	cdp.Stop()
 }

@@ -9,19 +9,19 @@ import (
 )
 
 func main() {
-	p := cdp.Start()
+	frame := cdp.Start()
 
 	// Enable all communication with chrome
-	if err := enable.Page(p, time.Second*2); err != nil {
+	if err := enable.Page(frame, time.Second*2); err != nil {
 		panic(err)
 	}
 
 	// Navigate
-	if err := page.Navigate(p, "https://google.com", time.Second*5); err != nil {
+	if err := page.Navigate(frame, "https://google.com", time.Second*5); err != nil {
 		panic(err)
 	}
 
-	log.Print("\n-- All completed --\n")
+	log.Printf("\n-- All completed for %s --\n", frame.FrameID)
 
 	cdp.Stop()
 }
