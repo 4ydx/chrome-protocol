@@ -3,7 +3,6 @@ package cdp
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"sync"
 )
 
@@ -26,23 +25,6 @@ type Error struct {
 // Error satisfies the error interface.
 func (e *Error) Error() string {
 	return fmt.Sprintf("%s (%d)", e.Message, e.Code)
-}
-
-// ProtocolIds contains the frame ID and loader ID from Params/Result being returned by the chrome devtools protocol.
-type ProtocolIds struct {
-	FID string `json:"frameId"`
-	LID string `json:"loaderId"`
-}
-
-// UnmarshalIds extracts the FrameID and LoaderID from the message received from the server.
-func UnmarshalIds(m Message) (*ProtocolIds, error) {
-	pi := &ProtocolIds{}
-	err := json.Unmarshal(m.Result, pi)
-	if err != nil {
-		log.Printf("Failure to unmarshal result %+v into ProtocolIds", m.Result)
-		err = json.Unmarshal(m.Params, pi)
-	}
-	return pi, err
 }
 
 // RequestID stores the last value used for chrome devtool protocal requests being sent to the server.

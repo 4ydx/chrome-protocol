@@ -42,24 +42,54 @@ func (ac *ActionCache) HasEvent(name string) bool {
 	return ok
 }
 
+func (ac *ActionCache) GetStepMethod() string {
+	ac.a.Lock()
+	defer ac.a.Unlock()
+	if ac.a.StepIndex == len(ac.a.Steps) {
+		return ac.a.Steps[ac.a.StepIndex-1].Method
+	}
+	return ac.a.Steps[ac.a.StepIndex].Method
+}
+
+func (ac *ActionCache) GetFrameID() string {
+	ac.a.Lock()
+	defer ac.a.Unlock()
+	return ac.a.Page.FrameID
+}
+
 // SetEvent takes the given message and sets an event's params or results's.
-func (ac *ActionCache) SetEvent(name string, m Message, pi *ProtocolIds) error {
+func (ac *ActionCache) SetEvent(name string, m Message) error {
 	ac.a.Lock()
 	defer ac.a.Unlock()
 
-	if err := ac.a.Page.CheckFrameID(pi); err != nil {
-		// When the frame ID differs, it indicates that this Event is not intended for this Action.
-		// In other words a different Action needs to consume this event.
-		return nil
-	}
+	frameID := ac.a.Page.GetFrameID()
 	if e, ok := ac.a.Events[name]; ok {
-		err := e.Value.UnmarshalJSON(m.Params)
-		if err != nil {
-			log.Printf("Unmarshal error: %s; for %+v; from %+v", err.Error(), e.Value, m)
-			err = e.Value.UnmarshalJSON(m.Result)
-			if err != nil {
-				log.Printf("Unmarshal error: %s; for %+v; from %+v", err.Error(), e.Value, m)
-				return err
+		if frameID == "" {
+			log.Println(".ERR FrameID is empty during event processing.")
+			if len(m.Params) > 0 {
+				err := e.Value.UnmarshalJSON(m.Params)
+				if err != nil {
+					log.Printf("Unmarshal params error: %s; for %+v; from %+v", err.Error(), e.Value, m.Params)
+					return err
+				}
+			} else {
+				err := e.Value.UnmarshalJSON(m.Result)
+				if err != nil {
+					log.Printf("Unmarshal result error: %s; for %+v; from %+v", err.Error(), e.Value, m.Result)
+					return err
+				}
+			}
+		} else {
+			if len(m.Params) > 0 {
+				if ok := e.Value.MatchFrameID(frameID, m.Params); !ok {
+					log.Printf("No matching frameID")
+					return nil
+				}
+			} else {
+				if ok := e.Value.MatchFrameID(frameID, m.Result); !ok {
+					log.Printf("No matching frameID")
+					return nil
+				}
 			}
 		}
 		e.IsFound = true
@@ -73,7 +103,6 @@ func (ac *ActionCache) SetEvent(name string, m Message, pi *ProtocolIds) error {
 }
 
 // SetResult applies the message returns to the current step and advances the step.
-//func (ac *ActionCache) SetResult(m Message, pi *ProtocolIds) error {
 func (ac *ActionCache) SetResult(m Message) error {
 	if ac.a == nil {
 		log.Fatal("Nil pointer")
@@ -84,11 +113,11 @@ func (ac *ActionCache) SetResult(m Message) error {
 	s := ac.a.Steps[ac.a.StepIndex]
 	frameID := ac.a.Page.GetFrameID()
 	if frameID == "" {
-		ac.a.Page.SetFrameID(frameID)
 		err := s.Reply.UnmarshalJSON(m.Result)
 		if err != nil {
 			log.Fatalf("Unmarshal error: %s", err)
 		}
+		ac.a.Page.SetFrameID(s.Reply.GetFrameID())
 	} else {
 		if ok := s.Reply.MatchFrameID(frameID, m.Result); !ok {
 			log.Printf("No matching frameID")

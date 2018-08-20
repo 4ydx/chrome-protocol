@@ -114,8 +114,9 @@ func Focus(pg *cdp.Frame, find string, timeout time.Duration) error {
 }
 
 // Click on the first element matching the find parameter.
-// nodeID -> DOM.getBoxModel -> Input.dispatchMouseEvent to issue mousedown+mouseup
-func Click(pg *cdp.Frame, find string, timeout time.Duration) error {
+// Any events that need to be tracked as a result of the click must be included.
+// This will insure that the click action waits until required events are fired.
+func Click(pg *cdp.Frame, find string, events []cdp.Event, timeout time.Duration) error {
 	target, err := FindFirstElementNodeId(pg, find, timeout)
 	if err != nil {
 		return err
@@ -137,7 +138,7 @@ func Click(pg *cdp.Frame, find string, timeout time.Duration) error {
 	yMid := (box[5]-box[1])/2 + box[1]
 
 	// Mouse click.
-	err = cdp.NewAction(pg, []cdp.Event{},
+	err = cdp.NewAction(pg, events,
 		[]cdp.Step{
 			cdp.Step{ID: pg.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mousePressed"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
 			cdp.Step{ID: pg.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mouseReleased"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},

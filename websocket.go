@@ -83,13 +83,7 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache, shut
 		} else {
 			// Check for events related to the current Action
 			if ac.HasEvent(m.Method) {
-				pi, err := UnmarshalIds(m)
-				if err != nil {
-					log.Fatal("Unmarshal error:", err)
-				}
-				log.Printf(".IDS: %+v\n", pi)
-
-				err = ac.SetEvent(m.Method, m, pi)
+				err = ac.SetEvent(m.Method, m)
 				if err != nil {
 					log.Fatal(err)
 				}

@@ -15,12 +15,13 @@ var Wait = time.Millisecond * 50
 type StepReply interface {
 	json.Unmarshaler
 	MatchFrameID(frameID string, m []byte) bool
+	GetFrameID() string
 }
 
 // Event holds the value returned by the server based on a matching MethodType name.
 type Event struct {
 	Name       string
-	Value      json.Unmarshaler
+	Value      StepReply
 	IsRequired bool
 	IsFound    bool
 }
@@ -73,10 +74,10 @@ func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-c
 				return fmt.Errorf("step timeout %s", act.ToJSON())
 			}
 			if act.IsComplete() && ac.EventsComplete() {
-				log.Print("Action completed.")
+				log.Printf("Action completed %s %s", ac.GetStepMethod(), ac.GetFrameID())
 				return nil
 			}
-			log.Print("Action waiting...")
+			log.Printf("Action waiting %s %s", ac.GetStepMethod(), ac.GetFrameID())
 		case <-stepChan:
 			if !act.IsComplete() {
 				if act.StepTimeout() {
@@ -86,10 +87,10 @@ func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-c
 				actionChan <- act
 			}
 			if act.IsComplete() && ac.EventsComplete() {
-				log.Printf("Action completed.")
+				log.Printf("Action completed %s %s", ac.GetStepMethod(), ac.GetFrameID())
 				return nil
 			}
-			log.Printf("Action waiting...")
+			log.Printf("Action waiting %s %s", ac.GetStepMethod(), ac.GetFrameID())
 		}
 	}
 }

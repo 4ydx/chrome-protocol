@@ -1,7 +1,6 @@
 package cdp
 
 import (
-	"fmt"
 	"github.com/4ydx/cdp/protocol/dom"
 	"sync"
 )
@@ -13,21 +12,6 @@ type Frame struct {
 	FrameID   string
 	LoaderID  string
 	RequestID RequestID
-}
-
-// CheckFrameID attempts to validate the FrameID.
-// This will likely change.
-func (p *Frame) CheckFrameID(pi *ProtocolIds) error {
-	p.Lock()
-	defer p.Unlock()
-
-	if p.FrameID == "" {
-		p.FrameID = pi.FID
-		p.FrameID = pi.FID
-	} else if p.FrameID != pi.FID {
-		return fmt.Errorf("frameid mismatch %s != %s", p.FrameID, pi.FID)
-	}
-	return nil
 }
 
 func (p *Frame) GetFrameID() string {
