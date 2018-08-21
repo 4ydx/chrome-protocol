@@ -15,9 +15,6 @@ var (
 	// Typically AllComplete or the OsInterrupt channels will fire and the write loop will send a request to close the socket.
 	AllComplete chan struct{}
 
-	// ShutDown will be closed when reading the websocket is no longer possible.
-	// ShutDown chan struct{}
-
 	// StepChan sends the signal that a step has been completed and an Action can advance.
 	StepChan chan struct{}
 
@@ -40,7 +37,6 @@ func Start(port int) *Frame {
 
 	Conn = GetWebsocket(port)
 	Cache = &ActionCache{}
-	//ShutDown = make(chan struct{})
 	AllComplete = make(chan struct{})
 
 	ActionChan = make(chan *Action)
