@@ -20,14 +20,14 @@ func GetEntireDocument(frame *cdp.Frame, timeout time.Duration) (*dom.GetFlatten
 	return a0.Steps[0].Reply.(*dom.GetFlattenedDocumentReply), err
 }
 
-// FindFirstElementNodeId gets the first element's nodeId using XPath, Css selector, or text matches with the find parameter.
-func FindFirstElementNodeId(frame *cdp.Frame, find string, timeout time.Duration) (dom.NodeID, error) {
+// FindFirstElementNodeID gets the first element's nodeId using XPath, Css selector, or text matches with the find parameter.
+func FindFirstElementNodeID(frame *cdp.Frame, find string, timeout time.Duration) (dom.NodeID, error) {
 	nodes, err := FindAll(frame, find, timeout)
 	if err != nil {
 		return 0, err
 	}
 	if len(nodes) == 0 {
-		return 0, errors.New("No element found.")
+		return 0, errors.New("no element found")
 	}
 	target := dom.NodeID(0)
 	for _, child := range nodes {
@@ -38,7 +38,7 @@ func FindFirstElementNodeId(frame *cdp.Frame, find string, timeout time.Duration
 		}
 	}
 	if target == 0 {
-		return 0, errors.New("No element (NodeType 1) found within matching nodes.")
+		return 0, errors.New("no element (NodeType 1) found within matching nodes")
 	}
 	return target, nil
 }
@@ -64,10 +64,10 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 	}
 	ret := a0.Steps[0].Reply.(*dom.PerformSearchReply)
 	if ret.SearchID == "" {
-		return found, errors.New("Unexpected empty search id.")
+		return found, errors.New("unexpected empty search id")
 	}
 	if ret.ResultCount == 0 {
-		return found, errors.New("No nodes found.")
+		return found, errors.New("no nodes found")
 	}
 
 	// Retrieve the NodeIds.
@@ -99,7 +99,7 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 
 // Focus on the first element node that matches the find parameter.
 func Focus(frame *cdp.Frame, find string, timeout time.Duration) error {
-	target, err := FindFirstElementNodeId(frame, find, timeout)
+	target, err := FindFirstElementNodeID(frame, find, timeout)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func Focus(frame *cdp.Frame, find string, timeout time.Duration) error {
 // Any events that need to be tracked as a result of the click must be included.
 // This will insure that the click action waits until required events are fired.
 func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Duration) error {
-	target, err := FindFirstElementNodeId(frame, find, timeout)
+	target, err := FindFirstElementNodeID(frame, find, timeout)
 	if err != nil {
 		return err
 	}

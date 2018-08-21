@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// GetNavigationEvents returns all events that are expected to occur after a page navigation api request is made.
 func GetNavigationEvents() []cdp.Event {
 	return []cdp.Event{
 		cdp.Event{Name: page.EventPageFrameNavigated, Value: &page.FrameNavigatedReply{}, IsRequired: true},
