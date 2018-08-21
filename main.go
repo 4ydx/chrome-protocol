@@ -11,14 +11,12 @@ var (
 	// Conn is the connection to the websocket.
 	Conn *websocket.Conn
 
-	// AllComplete receives empty structs and will trigger a close on the websocket.
-	// Typically AllComplete or the OsInterrupt channels will fire, triggering a close
-	// of the websocket connection via the write loop.  This, in turn, will cause the
-	// the write loop to wait for the shutdown channel to be closed or a timeout to be issued.
+	// AllComplete will trigger a close on the websocket.
+	// Typically AllComplete or the OsInterrupt channels will fire and the write loop will send a request to close the socket.
 	AllComplete chan struct{}
 
 	// ShutDown will be closed when reading the websocket is no longer possible.
-	ShutDown chan struct{}
+	// ShutDown chan struct{}
 
 	// StepChan sends the signal that a step has been completed and an Action can advance.
 	StepChan chan struct{}
@@ -42,14 +40,14 @@ func Start(port int) *Frame {
 
 	Conn = GetWebsocket(port)
 	Cache = &ActionCache{}
-	ShutDown = make(chan struct{})
+	//ShutDown = make(chan struct{})
 	AllComplete = make(chan struct{})
 
 	ActionChan = make(chan *Action)
 	StepChan = make(chan struct{})
 
-	go Write(Conn, ActionChan, Cache, ShutDown, AllComplete)
-	go Read(Conn, StepChan, Cache, ShutDown)
+	go Write(Conn, ActionChan, Cache, AllComplete)
+	go Read(Conn, StepChan, Cache)
 
 	page := &Frame{
 		RWMutex: &sync.RWMutex{},

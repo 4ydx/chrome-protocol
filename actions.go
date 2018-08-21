@@ -89,6 +89,9 @@ func (act *Action) ToJSON() []byte {
 		t := time.Now()
 		act.Start = &t
 	}
+	if act.StepIndex == len(act.Steps) {
+		return []byte("{}")
+	}
 	s := act.Steps[act.StepIndex]
 
 	j, err := json.Marshal(s)

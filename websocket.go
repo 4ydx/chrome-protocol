@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"time"
 )
 
 // GetWebsocket returns a websocket connection to the running browser.
@@ -52,11 +51,7 @@ func GetWebsocket(port int) *websocket.Conn {
 }
 
 // Read reads replies from the server over the websocket.
-func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache, shutdown chan<- struct{}) {
-	defer func() {
-		log.Println("Shutdown due to socket connection going away.")
-		close(shutdown)
-	}()
+func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache) {
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
@@ -114,15 +109,12 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache, shut
 }
 
 // Write writes requests to the server over the websocket.
-func Write(c *websocket.Conn, actionChan <-chan *Action, ac *ActionCache, shutdown, allComplete <-chan struct{}) {
+func Write(c *websocket.Conn, actionChan <-chan *Action, ac *ActionCache, allComplete <-chan struct{}) {
 	osInterrupt := make(chan os.Signal, 1)
 	signal.Notify(osInterrupt, os.Interrupt)
 
 	for {
 		select {
-		case <-shutdown:
-			log.Println("Shutdown.")
-			return
 		case action := <-actionChan:
 			log.Printf("!REQ: %s\n", action.ToJSON())
 			ac.Set(action)
@@ -133,27 +125,20 @@ func Write(c *websocket.Conn, actionChan <-chan *Action, ac *ActionCache, shutdo
 				return
 			}
 		case <-allComplete:
-			SendClose(c, shutdown)
+			SendClose(c)
 			return
 		case <-osInterrupt:
-			SendClose(c, shutdown)
+			SendClose(c)
 			return
 		}
 	}
 }
 
 // SendClose closes the websocket.
-func SendClose(c *websocket.Conn, shutdown <-chan struct{}) {
+func SendClose(c *websocket.Conn) {
 	// Cleanly close the connection by sending a close message and then waiting (with timeout) for the server to close the connection.
 	err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 	if err != nil {
 		log.Println("write close err:", err)
-		return
-	}
-	select {
-	case <-shutdown:
-		log.Println("SendClose done.")
-	case <-time.After(time.Second * 5):
-		log.Println("SendClose timeout.")
 	}
 }
