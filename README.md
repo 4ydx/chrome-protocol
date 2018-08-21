@@ -68,15 +68,15 @@ API methods, events, and types are all defined in the [Devtools Reference](https
 Possible Navigation Method:
 
 ```
-func Navigate(pg *cdp.Frame, url string, timeout time.Duration) error {
-	return cdp.NewAction(pg,
+func Navigate(frame *cdp.Frame, url string, timeout time.Duration) error {
+	return cdp.NewAction(frame,
 		[]cdp.Event{
 			cdp.Event{Name: page.EventPageFrameNavigated, Value: &page.FrameNavigatedReply{}, IsRequired: true},
 			cdp.Event{Name: page.EventPageFrameStartedLoading, Value: &page.FrameStartedLoadingReply{}, IsRequired: true},
 			cdp.Event{Name: page.EventPageFrameStoppedLoading, Value: &page.FrameStoppedLoadingReply{}, IsRequired: true},
 		},
 		[]cdp.Step{
-			cdp.Step{ID: pg.RequestID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
+			cdp.Step{ID: frame.RequestID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
 		}).Run()
 }
 ```
