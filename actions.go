@@ -115,7 +115,7 @@ func (act *Action) StepTimeout() bool {
 	return b
 }
 
-// ToJSON encodes the current step.  It will be sent to the server as a request.
+// ToJSON encodes the current step.  This is the chrome devtools protocol request.
 func (act *Action) ToJSON() []byte {
 	act.RLock()
 	defer act.RUnlock()
