@@ -77,8 +77,5 @@ func Navigate(pg *cdp.Frame, url string, timeout time.Duration) error {
 
 # Caveats
 
-Currently there is no code for opening a browser.  There is a start.sh script that shows how to manually start a browser.  
-The code will then create a websocket connection for you.
-
-Once a connection is made, you should only run actions against that "frame" in a serial manner.  I haven't tested concurrent access.
-It should work, but I cannot guarantee it at the moment.
+- No code yet for managing a browser.
+- Concurrent actions are currently not supported.
