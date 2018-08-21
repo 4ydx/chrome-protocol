@@ -62,6 +62,7 @@ func (ac *ActionCache) SetEvent(name string, m Message) error {
 	ac.a.Lock()
 	defer ac.a.Unlock()
 
+	// Attempt to compare the incoming Event's frameID value with the existing value.
 	frameID := ac.a.Page.GetFrameID()
 	if e, ok := ac.a.Events[name]; ok {
 		if frameID == "" {
@@ -82,6 +83,7 @@ func (ac *ActionCache) SetEvent(name string, m Message) error {
 		} else {
 			if len(m.Params) > 0 {
 				if ok := e.Value.MatchFrameID(frameID, m.Params); !ok {
+					// When the frameID does not match, it is definitely not intended for the current Action.
 					log.Printf("No matching frameID")
 					return nil
 				}

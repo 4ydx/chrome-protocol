@@ -74,39 +74,43 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache, shut
 		}
 		// log.Printf(".DEC: %+v\n", m)
 
+		// All messages with an ID matching a step are set here.
 		if ac.HasStepID(m.ID) {
 			err := ac.SetResult(m)
 			if err != nil {
 				log.Fatal(err)
 			}
 			stepComplete <- struct{}{}
-		} else {
-			// Check for events related to the current Action
-			if ac.HasEvent(m.Method) {
-				err = ac.SetEvent(m.Method, m)
+			continue
+		}
+
+		// Check and then set Events related to the current Action.
+		if ac.HasEvent(m.Method) {
+			err = ac.SetEvent(m.Method, m)
+			if err != nil {
+				log.Fatal(err)
+			}
+			continue
+		}
+
+		// Generic unmarshaler for all other Events.
+		e, ok := lib.GetEventUnmarshaler(m.Method)
+		if ok {
+			if len(m.Result) > 0 {
+				err := e.UnmarshalJSON(m.Result)
 				if err != nil {
-					log.Fatal(err)
-				}
-			} else {
-				e, ok := lib.GetEventUnmarshaler(m.Method)
-				if ok {
-					if len(m.Result) > 0 {
-						err := e.UnmarshalJSON(m.Result)
-						if err != nil {
-							log.Fatal("Unmarshal error:", err, m.Result)
-						}
-					}
-					if len(m.Params) > 0 {
-						err := e.UnmarshalJSON(m.Params)
-						if err != nil {
-							log.Fatal("Unmarshal error:", err, m.Params)
-						}
-					}
-					log.Printf(".GOT event %+v\n", e)
-				} else {
-					log.Printf(".SKP event %s %s %s\n", m.Method, m.Params, m.Result)
+					log.Fatal("Unmarshal error:", err, m.Result)
 				}
 			}
+			if len(m.Params) > 0 {
+				err := e.UnmarshalJSON(m.Params)
+				if err != nil {
+					log.Fatal("Unmarshal error:", err, m.Params)
+				}
+			}
+			log.Printf(".GOT event %+v\n", e)
+		} else {
+			log.Printf(".SKP event %s %s %s\n", m.Method, m.Params, m.Result)
 		}
 	}
 }
