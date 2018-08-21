@@ -34,7 +34,8 @@ import (
 )
 
 func main() {
-	frame := cdp.Start()
+	port := 9222
+	frame := cdp.Start(port)
 
 	// Enable page events 
 	if err := enable.Page(frame, time.Second*2); err != nil {
