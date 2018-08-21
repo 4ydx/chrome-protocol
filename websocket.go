@@ -34,10 +34,8 @@ func GetWebsocket(port int) *websocket.Conn {
 	ws := ""
 	arr := inter.([]interface{})
 	for i := 0; i < len(arr); i++ {
-		fmt.Println("-------------")
 		entry := arr[i].(map[string]interface{})
 		for k, v := range entry {
-			fmt.Printf("%s %+v\n", k, v)
 			if k == "webSocketDebuggerUrl" {
 				ws = v.(string)
 			}
