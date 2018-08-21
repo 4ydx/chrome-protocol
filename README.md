@@ -63,11 +63,12 @@ func main() {
 Actions are the requests that you make to the browser in order to automate different tasks.  For instance asking
 the browser to navigate to a particular url.  When you construct an action you need to fill in at least one "step" that consists
 of the params struct, the reply struct, and the method name of the API call you are making.  Finally it is possible to associate events
-that the server will send to the client with your action.
+that the server will send to the client with your action.  By specifying events, you can be sure that a given action has actually run its
+course and the browser state is where you would expect it to be.
 
 API methods, events, and types are all defined in the [Devtools Reference](https://chromedevtools.github.io/devtools-protocol/tot).
 
-Possible Navigation Method:
+Possible Navigation Method.  This watches for the FrameStoppedLoadingReply event which helps to ensure that navigation is fully completed.
 
 ```
 func Navigate(frame *cdp.Frame, url string, timeout time.Duration) error {
