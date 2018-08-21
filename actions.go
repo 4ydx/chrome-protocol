@@ -39,8 +39,6 @@ type Step struct {
 }
 
 // Action represents a collection of json requests (steps) and any events that those requests might trigger that need to be tracked.
-// TODO: I'm not sure that multiple steps are really required here.  It might be less confusing if the Step was folded into the Action,
-//       so that one action == one json api call across the websocket.
 type Action struct {
 	*sync.RWMutex
 	Steps     []Step
