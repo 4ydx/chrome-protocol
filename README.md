@@ -18,8 +18,9 @@ Examples of basic actions are included in the example folder.
 - Fill
 - Click
 
-I will be working on other actions as I need them for my own personal projects.  You can take the generated code in
-[github.com/4ydx/cdp](https://github.com/4ydx/cdp/tree/master/protocol) and create your own higher level actions for
+I will be working on other actions as I need them for my own personal projects.  
+
+You can take the generated code in [github.com/4ydx/cdp](https://github.com/4ydx/cdp/tree/master/protocol) and create your own higher level actions for
 interacting with the browser.  This will require understanding the [Devtools Reference](https://chromedevtools.github.io/devtools-protocol/tot).
 
 Navigation example:
