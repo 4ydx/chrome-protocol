@@ -42,6 +42,7 @@ func (ac *ActionCache) HasEvent(name string) bool {
 	return ok
 }
 
+// GetStepMethod returns the method of the step that is currently active.
 func (ac *ActionCache) GetStepMethod() string {
 	ac.a.Lock()
 	defer ac.a.Unlock()
@@ -51,10 +52,11 @@ func (ac *ActionCache) GetStepMethod() string {
 	return ac.a.Steps[ac.a.StepIndex].Method
 }
 
+// GetFrameID returns the frameID of the current frame.
 func (ac *ActionCache) GetFrameID() string {
 	ac.a.Lock()
 	defer ac.a.Unlock()
-	return ac.a.Page.FrameID
+	return ac.a.Frame.FrameID
 }
 
 // SetEvent takes the given message and sets an event's params or results's.
@@ -63,7 +65,7 @@ func (ac *ActionCache) SetEvent(name string, m Message) error {
 	defer ac.a.Unlock()
 
 	// Attempt to compare the incoming Event's frameID value with the existing value.
-	frameID := ac.a.Page.GetFrameID()
+	frameID := ac.a.Frame.GetFrameID()
 	if e, ok := ac.a.Events[name]; ok {
 		if frameID == "" {
 			log.Println(".ERR FrameID is empty during event processing.")
@@ -113,13 +115,13 @@ func (ac *ActionCache) SetResult(m Message) error {
 	defer ac.a.Unlock()
 
 	s := ac.a.Steps[ac.a.StepIndex]
-	frameID := ac.a.Page.GetFrameID()
+	frameID := ac.a.Frame.GetFrameID()
 	if frameID == "" {
 		err := s.Reply.UnmarshalJSON(m.Result)
 		if err != nil {
 			log.Fatalf("Unmarshal error: %s", err)
 		}
-		ac.a.Page.SetFrameID(s.Reply.GetFrameID())
+		ac.a.Frame.SetFrameID(s.Reply.GetFrameID())
 	} else {
 		if ok := s.Reply.MatchFrameID(frameID, m.Result); !ok {
 			log.Printf("No matching frameID")

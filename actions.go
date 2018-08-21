@@ -12,6 +12,7 @@ import (
 // The loop's select is triggered and the action will be checked for completion.
 var Wait = time.Millisecond * 50
 
+// StepReply specifies required methods for handling the json encoded replies received from the server.
 type StepReply interface {
 	json.Unmarshaler
 	MatchFrameID(frameID string, m []byte) bool
@@ -45,7 +46,7 @@ type Action struct {
 	StepIndex int
 	Events    map[string]Event
 	Start     *time.Time
-	Page      *Frame
+	Frame     *Frame
 }
 
 // NewAction returns a newly created action with any events that will be triggered by steps the action will take.
@@ -54,7 +55,7 @@ func NewAction(page *Frame, events []Event, steps []Step) *Action {
 		RWMutex: &sync.RWMutex{},
 		Events:  make(map[string]Event),
 		Steps:   steps,
-		Page:    page,
+		Frame:   page,
 	}
 	for _, e := range events {
 		act.Events[e.Name] = e

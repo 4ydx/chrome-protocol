@@ -14,6 +14,7 @@ type Frame struct {
 	RequestID RequestID
 }
 
+// GetFrameID returns the current frameID.
 func (p *Frame) GetFrameID() string {
 	p.RLock()
 	defer p.RUnlock()
@@ -21,6 +22,7 @@ func (p *Frame) GetFrameID() string {
 	return p.FrameID
 }
 
+// SetFrameID sets the current frameID.
 func (p *Frame) SetFrameID(frameID string) {
 	p.Lock()
 	defer p.Unlock()
