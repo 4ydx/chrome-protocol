@@ -8,11 +8,11 @@ import (
 )
 
 // Fill on the first element node that matches the find parameter.
-func Fill(pg *cdp.Frame, fill string, timeout time.Duration) error {
+func Fill(frame *cdp.Frame, fill string, timeout time.Duration) error {
 	for _, key := range fill {
-		err := cdp.NewAction(pg, []cdp.Event{},
+		err := cdp.NewAction(frame, []cdp.Event{},
 			[]cdp.Step{
-				cdp.Step{ID: pg.RequestID.GetNext(), Method: input.CommandInputDispatchKeyEvent, Params: &input.DispatchKeyEventArgs{Type: "char", Text: string(key)}, Reply: &input.DispatchKeyEventReply{}, Timeout: timeout},
+				cdp.Step{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchKeyEvent, Params: &input.DispatchKeyEventArgs{Type: "char", Text: string(key)}, Reply: &input.DispatchKeyEventReply{}, Timeout: timeout},
 			}).Run()
 		if err != nil {
 			log.Fatal(err)

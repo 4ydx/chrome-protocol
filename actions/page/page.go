@@ -15,10 +15,10 @@ func GetNavigationEvents() []cdp.Event {
 }
 
 // Navigate sends the browser to the given URL
-func Navigate(pg *cdp.Frame, url string, timeout time.Duration) error {
-	return cdp.NewAction(pg,
+func Navigate(frame *cdp.Frame, url string, timeout time.Duration) error {
+	return cdp.NewAction(frame,
 		GetNavigationEvents(),
 		[]cdp.Step{
-			cdp.Step{ID: pg.RequestID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
+			cdp.Step{ID: frame.RequestID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
 		}).Run()
 }
