@@ -81,6 +81,7 @@ func (act *Action) StepTimeout() <-chan time.Time {
 }
 
 // ToJSON encodes the current step.  This is the chrome devtools protocol request.
+// In the event that all steps are complete, continue to display the last step for debugging convenience.
 func (act *Action) ToJSON() []byte {
 	act.RLock()
 	defer act.RUnlock()
@@ -89,10 +90,11 @@ func (act *Action) ToJSON() []byte {
 		t := time.Now()
 		act.Start = &t
 	}
+	index := act.StepIndex
 	if act.StepIndex == len(act.Steps) {
-		return []byte("{}")
+		index--
 	}
-	s := act.Steps[act.StepIndex]
+	s := act.Steps[index]
 
 	j, err := json.Marshal(s)
 	if err != nil {

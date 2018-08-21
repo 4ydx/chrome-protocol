@@ -41,6 +41,7 @@ import (
 func main() {
 	port := 9222
 	frame := cdp.Start(port)
+	defer cdp.Stop()
 
 	// Enable page events 
 	if err := enable.Page(frame, time.Second*2); err != nil {
@@ -53,8 +54,6 @@ func main() {
 	}
 
 	log.Printf("\n-- All completed for %s --\n", frame.FrameID)
-
-	cdp.Stop()
 }
 ```
 
