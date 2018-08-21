@@ -6,8 +6,7 @@ import (
 	"sync"
 )
 
-// Message chrome DevTools Protocol message sent/read over websocket
-// connection.
+// Message is the chrome DevTools Protocol message sent/read over the websocket connection.
 type Message struct {
 	ID     int64           `json:"id,omitempty"`     // Unique message identifier.
 	Method string          `json:"method,omitempty"` // Event or command type.
@@ -16,7 +15,7 @@ type Message struct {
 	Error  *Error          `json:"error,omitempty"`  // Error message.
 }
 
-// Error error type.
+// Error error type that is apart of the Message struct.
 type Error struct {
 	Code    int64  `json:"code"`    // Error code.
 	Message string `json:"message"` // Error message.
