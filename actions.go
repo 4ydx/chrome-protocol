@@ -72,16 +72,12 @@ func (act *Action) IsComplete() bool {
 }
 
 // StepTimeout once timed out will trigger an error and stop the automation.
-func (act *Action) StepTimeout() bool {
+func (act *Action) StepTimeout() <-chan time.Time {
 	act.RLock()
 	defer act.RUnlock()
 
-	b := false
 	s := act.Steps[act.StepIndex]
-	if s.Timeout > 0 {
-		b = time.Now().After(act.Start.Add(s.Timeout))
-	}
-	return b
+	return time.After(s.Timeout)
 }
 
 // ToJSON encodes the current step.  This is the chrome devtools protocol request.
@@ -106,13 +102,13 @@ func (act *Action) ToJSON() []byte {
 // Then the action will wait until all steps and expected events are completed.
 func (act *Action) Run() error {
 	ActionChan <- act
+	stepTimeout := act.StepTimeout()
 	for {
 		select {
+		case <-stepTimeout:
+			return fmt.Errorf("step timeout %s", act.ToJSON())
 		case <-time.After(Wait):
 			// Periodically poll for the action's status.
-			if !act.IsComplete() && act.StepTimeout() {
-				return fmt.Errorf("step timeout %s", act.ToJSON())
-			}
 			if act.IsComplete() && Cache.EventsComplete() {
 				log.Printf("Action completed %s %s", Cache.GetStepMethod(), Cache.GetFrameID())
 				return nil
@@ -122,11 +118,9 @@ func (act *Action) Run() error {
 			// Once a step is complete check to see if the action is entirely complete
 			// or if it needs to continue on to the next step.
 			if !act.IsComplete() {
-				if act.StepTimeout() {
-					return fmt.Errorf("step timeout %s", act.ToJSON())
-				}
-				// Push the current action's next step to the server.
+				// Execute the next Step in the Action.
 				ActionChan <- act
+				stepTimeout = act.StepTimeout()
 			}
 			if act.IsComplete() && Cache.EventsComplete() {
 				log.Printf("Action completed %s %s", Cache.GetStepMethod(), Cache.GetFrameID())
@@ -138,10 +132,13 @@ func (act *Action) Run() error {
 }
 
 // Log writes the current state of the action to the log.
-func (act *Action) log() {
-	log.Printf("Act %+v\n", act)
-	for _, step := range act.Steps {
-		log.Printf("Step %d Params %+v", step.ID, step.Params)
-		log.Printf("Step %d Return %+v", step.ID, step.Reply)
+func (act *Action) Log() {
+	act.RLock()
+	defer act.RUnlock()
+
+	log.Printf("Action %+v\n", act)
+	for i, step := range act.Steps {
+		log.Printf("%d Step %d Params %+v", i, step.ID, step.Params)
+		log.Printf("%d Step %d Return %+v", i, step.ID, step.Reply)
 	}
 }
