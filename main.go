@@ -31,7 +31,7 @@ var (
 )
 
 // Start prepares required resources to begin automation.
-func Start() *Frame {
+func Start(port int) *Frame {
 	f, err := os.Create("log.txt")
 	if err != nil {
 		panic(err)
@@ -40,7 +40,7 @@ func Start() *Frame {
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 	log.SetOutput(f)
 
-	Conn = GetWebsocket()
+	Conn = GetWebsocket(port)
 	Cache = &ActionCache{}
 	ShutDown = make(chan struct{})
 	AllComplete = make(chan struct{})

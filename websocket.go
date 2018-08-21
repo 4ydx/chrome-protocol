@@ -14,8 +14,8 @@ import (
 )
 
 // GetWebsocket returns a websocket connection to the running browser.
-func GetWebsocket() *websocket.Conn {
-	r, err := http.Get("http://localhost:9222/json")
+func GetWebsocket(port int) *websocket.Conn {
+	r, err := http.Get(fmt.Sprintf("http://localhost:%d/json", port))
 	if err != nil {
 		log.Fatal(err)
 	}

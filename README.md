@@ -7,6 +7,8 @@ the chrome devtool protocol.  Aims to provide a few of the basic commands that
 one would desire when automating actions in chrome or any other browser that
 supports the protocol.
 
+This is still a work in progress.
+
 # Examples
 
 Examples of basic actions are included in the example folder.

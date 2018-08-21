@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	frame := cdp.Start()
+	frame := cdp.Start(9222)
 
 	// Enable page, dom, and network events
 	if err := enable.Page(frame, time.Second*2); err != nil {
