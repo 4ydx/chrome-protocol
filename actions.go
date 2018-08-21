@@ -63,37 +63,6 @@ func NewAction(page *Frame, events []Event, steps []Step) *Action {
 	return act
 }
 
-// wait continues to query the state of the action.
-// Once the action is complete, wait will return.
-func (act *Action) wait(actionChan chan<- *Action, ac *ActionCache, stepChan <-chan struct{}) error {
-	for {
-		select {
-		case <-time.After(Wait):
-			if !act.IsComplete() && act.StepTimeout() {
-				return fmt.Errorf("step timeout %s", act.ToJSON())
-			}
-			if act.IsComplete() && ac.EventsComplete() {
-				log.Printf("Action completed %s %s", ac.GetStepMethod(), ac.GetFrameID())
-				return nil
-			}
-			log.Printf("Action waiting %s %s", ac.GetStepMethod(), ac.GetFrameID())
-		case <-stepChan:
-			if !act.IsComplete() {
-				if act.StepTimeout() {
-					return fmt.Errorf("step timeout %s", act.ToJSON())
-				}
-				// Push the current action's next step to the server.
-				actionChan <- act
-			}
-			if act.IsComplete() && ac.EventsComplete() {
-				log.Printf("Action completed %s %s", ac.GetStepMethod(), ac.GetFrameID())
-				return nil
-			}
-			log.Printf("Action waiting %s %s", ac.GetStepMethod(), ac.GetFrameID())
-		}
-	}
-}
-
 // IsComplete indicates that all steps are complete.
 func (act *Action) IsComplete() bool {
 	act.RLock()
@@ -103,7 +72,6 @@ func (act *Action) IsComplete() bool {
 }
 
 // StepTimeout once timed out will trigger an error and stop the automation.
-// 2DO: Consider using context rather than a timeout.  Go programmers love context.
 func (act *Action) StepTimeout() bool {
 	act.RLock()
 	defer act.RUnlock()
@@ -138,7 +106,35 @@ func (act *Action) ToJSON() []byte {
 // Then the action will wait until all steps and expected events are completed.
 func (act *Action) Run() error {
 	ActionChan <- act
-	return act.wait(ActionChan, Cache, StepChan)
+	for {
+		select {
+		case <-time.After(Wait):
+			// Periodically poll for the action's status.
+			if !act.IsComplete() && act.StepTimeout() {
+				return fmt.Errorf("step timeout %s", act.ToJSON())
+			}
+			if act.IsComplete() && Cache.EventsComplete() {
+				log.Printf("Action completed %s %s", Cache.GetStepMethod(), Cache.GetFrameID())
+				return nil
+			}
+			log.Printf("Action waiting %s %s", Cache.GetStepMethod(), Cache.GetFrameID())
+		case <-StepChan:
+			// Once a step is complete check to see if the action is entirely complete
+			// or if it needs to continue on to the next step.
+			if !act.IsComplete() {
+				if act.StepTimeout() {
+					return fmt.Errorf("step timeout %s", act.ToJSON())
+				}
+				// Push the current action's next step to the server.
+				ActionChan <- act
+			}
+			if act.IsComplete() && Cache.EventsComplete() {
+				log.Printf("Action completed %s %s", Cache.GetStepMethod(), Cache.GetFrameID())
+				return nil
+			}
+			log.Printf("Action waiting %s %s", Cache.GetStepMethod(), Cache.GetFrameID())
+		}
+	}
 }
 
 // Log writes the current state of the action to the log.
