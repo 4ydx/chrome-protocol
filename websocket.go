@@ -109,17 +109,15 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache) {
 }
 
 // Write writes requests to the server over the websocket.
-func Write(c *websocket.Conn, actionChan <-chan *Action, ac *ActionCache, allComplete <-chan struct{}) {
+func Write(c *websocket.Conn, actionChan <-chan []byte, allComplete <-chan struct{}) {
 	osInterrupt := make(chan os.Signal, 1)
 	signal.Notify(osInterrupt, os.Interrupt)
 
 	for {
 		select {
-		case action := <-actionChan:
-			log.Printf("!REQ: %s\n", action.ToJSON())
-			ac.Set(action)
-
-			err := c.WriteMessage(websocket.TextMessage, action.ToJSON())
+		case command := <-actionChan:
+			log.Printf("!REQ: %s\n", command)
+			err := c.WriteMessage(websocket.TextMessage, command)
 			if err != nil {
 				log.Println("write:", err)
 				return
