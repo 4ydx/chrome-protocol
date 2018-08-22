@@ -106,29 +106,24 @@ func (act *Action) ToJSON() []byte {
 // Run sends the current action to websocket code that will create a request.
 // Then the action will wait until all steps and expected events are completed.
 func (act *Action) Run() error {
-	ActionChan <- act
+	Cache.Set(act)
+	ActionChan <- act.ToJSON()
 	stepTimeout := act.StepTimeout()
 	for {
 		select {
 		case <-stepTimeout:
 			return fmt.Errorf("step timeout %s", act.ToJSON())
-		case <-time.After(Wait):
-			// Periodically poll for the action's status.
-			if act.IsComplete() && Cache.EventsComplete() {
-				log.Printf("Action completed %s %s", Cache.GetStepMethod(), Cache.GetFrameID())
-				return nil
-			}
-			log.Printf("Action waiting %s %s", Cache.GetStepMethod(), Cache.GetFrameID())
 		case <-StepChan:
 			// Once a step is complete check to see if the action is entirely complete
 			// or if it needs to continue on to the next step.
 			if !act.IsComplete() {
 				// Execute the next Step in the Action.
-				ActionChan <- act
+				ActionChan <- act.ToJSON()
 				stepTimeout = act.StepTimeout()
 			}
 			if act.IsComplete() && Cache.EventsComplete() {
-				log.Printf("Action completed %s %s", Cache.GetStepMethod(), Cache.GetFrameID())
+				log.Printf("Action Step completed %s %s", Cache.GetStepMethod(), Cache.GetFrameID())
+				Cache.Clear()
 				return nil
 			}
 			log.Printf("Action waiting %s %s", Cache.GetStepMethod(), Cache.GetFrameID())
