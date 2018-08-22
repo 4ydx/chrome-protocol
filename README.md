@@ -13,10 +13,11 @@ This is still a work in progress.
 
 Examples of basic actions are included in the example folder.
 
-- Navigation
-- Focus
-- Fill
 - Click
+- Fill
+- Focus
+- Navigation
+- Screenshot
 
 I will be working on other actions as I need them for my own personal projects.  
 
