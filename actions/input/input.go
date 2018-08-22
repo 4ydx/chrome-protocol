@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// Fill on the first element node that matches the find parameter.
+// Fill on the first element node that matches the find parameter.  dom.Focus can be called in order to focus an element in order to fill it.
 func Fill(frame *cdp.Frame, fill string, timeout time.Duration) error {
 	for _, key := range fill {
 		err := cdp.NewAction(frame, []cdp.Event{},
