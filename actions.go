@@ -142,3 +142,131 @@ func (act *Action) Log() {
 		log.Printf("%d Step %d Return %+v", i, step.ID, step.Reply)
 	}
 }
+
+// HasStepID determines if an id matches the current action's step's unique id.
+func (act *Action) HasStepID(id int64) bool {
+	act.RLock()
+	defer act.RUnlock()
+
+	if act.StepIndex == len(act.Steps) {
+		return false
+	}
+	return act.Steps[act.StepIndex].ID == id
+}
+
+// HasEvent returns true when the action has an event with the given MethodType.
+func (act *Action) HasEvent(name string) bool {
+	act.RLock()
+	defer act.RUnlock()
+
+	_, ok := act.Events[name]
+	return ok
+}
+
+// GetStepMethod returns the method of the step that is currently active or the very last method.
+func (act *Action) GetStepMethod() string {
+	act.RLock()
+	defer act.RUnlock()
+
+	if act.StepIndex == len(act.Steps) {
+		return act.Steps[act.StepIndex-1].Method
+	}
+	return act.Steps[act.StepIndex].Method
+}
+
+// GetFrameID returns the frameID of the current frame.
+func (act *Action) GetFrameID() string {
+	act.RLock()
+	defer act.RUnlock()
+
+	return act.Frame.FrameID
+}
+
+// SetEvent takes the given message and sets an event's params or results's.
+func (act *Action) SetEvent(name string, m Message) error {
+	act.Lock()
+	defer act.Unlock()
+
+	// Attempt to compare the incoming Event's frameID value with the existing value.
+	frameID := act.Frame.GetFrameID()
+	if e, ok := act.Events[name]; ok {
+		if frameID == "" {
+			log.Println(".ERR FrameID is empty during event processing.")
+			if len(m.Params) > 0 {
+				err := e.Value.UnmarshalJSON(m.Params)
+				if err != nil {
+					log.Printf("Unmarshal params error: %s; for %+v; from %+v", err.Error(), e.Value, m.Params)
+					return err
+				}
+			} else {
+				err := e.Value.UnmarshalJSON(m.Result)
+				if err != nil {
+					log.Printf("Unmarshal result error: %s; for %+v; from %+v", err.Error(), e.Value, m.Result)
+					return err
+				}
+			}
+		} else {
+			if len(m.Params) > 0 {
+				if ok := e.Value.MatchFrameID(frameID, m.Params); !ok {
+					// When the frameID does not match, it is definitely not intended for the current Action.
+					log.Printf("No matching frameID")
+					return nil
+				}
+			} else {
+				if ok := e.Value.MatchFrameID(frameID, m.Result); !ok {
+					log.Printf("No matching frameID")
+					return nil
+				}
+			}
+		}
+		e.IsFound = true
+		act.Events[string(name)] = e
+
+		log.Printf(".EVT: %s %+v\n", name, m)
+		log.Printf("    : %+v\n", e)
+		log.Printf("    : %+v\n", e.Value)
+	}
+	return nil
+}
+
+// SetResult applies the message returns to the current step and advances the step.
+func (ac *Action) SetResult(m Message) error {
+	ac.Lock()
+	defer ac.Unlock()
+
+	s := ac.Steps[ac.StepIndex]
+	frameID := ac.Frame.GetFrameID()
+	if frameID == "" {
+		err := s.Reply.UnmarshalJSON(m.Result)
+		if err != nil {
+			log.Fatalf("Unmarshal error: %s", err)
+		}
+		ac.Frame.SetFrameID(s.Reply.GetFrameID())
+	} else {
+		if ok := s.Reply.MatchFrameID(frameID, m.Result); !ok {
+			log.Printf("No matching frameID")
+			return nil
+		}
+	}
+	ac.StepIndex++
+
+	log.Printf(".STP COMPLETE: %+v\n", s)
+	log.Printf("             : %+v\n", s.Params)
+	log.Printf("             : %+v\n", s.Reply)
+
+	return nil
+}
+
+// EventsComplete indicates whether or not all required events have received a message from the server.
+func (ac *Action) EventsComplete() bool {
+	ac.RLock()
+	defer ac.RUnlock()
+
+	complete := true
+	for _, e := range ac.Events {
+		if e.IsRequired && !e.IsFound {
+			complete = false
+		}
+	}
+	return complete
+}

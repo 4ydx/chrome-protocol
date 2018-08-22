@@ -19,7 +19,7 @@ var (
 	StepChan chan struct{}
 
 	// ActionChan sends Actions to the websocket.
-	ActionChan chan *Action
+	ActionChan chan []byte
 
 	// Cache stores the Action that is currently active.
 	Cache *ActionCache
@@ -36,13 +36,15 @@ func Start(port int) *Frame {
 	log.SetOutput(f)
 
 	Conn = GetWebsocket(port)
-	Cache = &ActionCache{}
+	Cache = &ActionCache{
+		RWMutex: &sync.RWMutex{},
+	}
 	AllComplete = make(chan struct{})
 
-	ActionChan = make(chan *Action)
+	ActionChan = make(chan []byte)
 	StepChan = make(chan struct{})
 
-	go Write(Conn, ActionChan, Cache, AllComplete)
+	go Write(Conn, ActionChan, AllComplete)
 	go Read(Conn, StepChan, Cache)
 
 	page := &Frame{
