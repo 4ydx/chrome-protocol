@@ -16,7 +16,9 @@ func GetEntireDocument(frame *cdp.Frame, timeout time.Duration) (*dom.GetFlatten
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetFlattenedDocument, Params: &dom.GetFlattenedDocumentArgs{Depth: -1}, Reply: &dom.GetFlattenedDocumentReply{}, Timeout: timeout},
 		})
 	err := a0.Run()
-
+	if err != nil {
+		log.Print(err)
+	}
 	return a0.Steps[0].Reply.(*dom.GetFlattenedDocumentReply), err
 }
 
@@ -24,10 +26,13 @@ func GetEntireDocument(frame *cdp.Frame, timeout time.Duration) (*dom.GetFlatten
 func FindFirstElementNodeID(frame *cdp.Frame, find string, timeout time.Duration) (dom.NodeID, error) {
 	nodes, err := FindAll(frame, find, timeout)
 	if err != nil {
+		log.Print(err)
 		return 0, err
 	}
 	if len(nodes) == 0 {
-		return 0, errors.New("no element found")
+		err := errors.New("no element found")
+		log.Print(err)
+		return 0, err
 	}
 	target := dom.NodeID(0)
 	for _, child := range nodes {
@@ -38,7 +43,9 @@ func FindFirstElementNodeID(frame *cdp.Frame, find string, timeout time.Duration
 		}
 	}
 	if target == 0 {
-		return 0, errors.New("no element (NodeType 1) found within matching nodes")
+		err := errors.New("no element (NodeType 1) found within matching nodes")
+		log.Print(err)
+		return 0, err
 	}
 	return target, nil
 }
@@ -49,6 +56,7 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 
 	doc, err := GetEntireDocument(frame, timeout)
 	if err != nil {
+		log.Print(err)
 		return found, err
 	}
 
@@ -60,14 +68,19 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 		})
 	err = a0.Run()
 	if err != nil {
+		log.Print(err)
 		return found, err
 	}
 	ret := a0.Steps[0].Reply.(*dom.PerformSearchReply)
 	if ret.SearchID == "" {
-		return found, errors.New("unexpected empty search id")
+		err := errors.New("unexpected empty search id")
+		log.Print(err)
+		return found, err
 	}
 	if ret.ResultCount == 0 {
-		return found, errors.New("no nodes found")
+		err := errors.New("no nodes found")
+		log.Print(err)
+		return found, err
 	}
 
 	// Retrieve the NodeIds.
@@ -82,6 +95,7 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 		})
 	err = a1.Run()
 	if err != nil {
+		log.Print(err)
 		return found, err
 	}
 
@@ -101,6 +115,7 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 func Focus(frame *cdp.Frame, find string, timeout time.Duration) error {
 	target, err := FindFirstElementNodeID(frame, find, timeout)
 	if err != nil {
+		log.Print(err)
 		return err
 	}
 	err = cdp.NewAction(frame, []cdp.Event{},
@@ -108,7 +123,8 @@ func Focus(frame *cdp.Frame, find string, timeout time.Duration) error {
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMFocus, Params: &dom.FocusArgs{NodeID: target}, Reply: &dom.FocusReply{}, Timeout: timeout},
 		}).Run()
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return err
 	}
 	return nil
 }
@@ -119,6 +135,7 @@ func Focus(frame *cdp.Frame, find string, timeout time.Duration) error {
 func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Duration) error {
 	target, err := FindFirstElementNodeID(frame, find, timeout)
 	if err != nil {
+		log.Print(err)
 		return err
 	}
 	a0 := cdp.NewAction(frame, []cdp.Event{},
@@ -127,7 +144,8 @@ func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Durat
 		})
 	err = a0.Run()
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return err
 	}
 
 	// Box is an array of quad vertices, x immediately followed by y for each point, points clock-wise.
@@ -144,8 +162,8 @@ func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Durat
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mouseReleased"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
 		}).Run()
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return err
 	}
-
 	return nil
 }

@@ -9,13 +9,14 @@ import (
 	"github.com/4ydx/cdp/protocol/page"
 	"github.com/4ydx/cdp/protocol/runtime"
 	"github.com/4ydx/chrome-protocol"
+	lg "log"
 	"time"
 )
 
 // All tells the server to send all event values across the websocket.
 func All(frame *cdp.Frame, timeout time.Duration) error {
 	// Order is important.  Dom should come first.
-	return cdp.NewAction(frame, []cdp.Event{}, []cdp.Step{
+	err := cdp.NewAction(frame, []cdp.Event{}, []cdp.Step{
 		cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMEnable, Params: &dom.EnableArgs{}, Reply: &dom.EnableReply{}, Timeout: timeout},
 		cdp.Step{ID: frame.RequestID.GetNext(), Method: css.CommandCSSEnable, Params: &css.EnableArgs{}, Reply: &css.EnableReply{}, Timeout: timeout},
 		cdp.Step{ID: frame.RequestID.GetNext(), Method: inspector.CommandInspectorEnable, Params: &inspector.EnableArgs{}, Reply: &inspector.EnableReply{}, Timeout: timeout},
@@ -24,25 +25,41 @@ func All(frame *cdp.Frame, timeout time.Duration) error {
 		cdp.Step{ID: frame.RequestID.GetNext(), Method: page.CommandPageEnable, Params: &page.EnableArgs{}, Reply: &page.EnableReply{}, Timeout: timeout},
 		cdp.Step{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeEnable, Params: &runtime.EnableArgs{}, Reply: &runtime.EnableReply{}, Timeout: timeout},
 	}).Run()
+	if err != nil {
+		lg.Print(err)
+	}
+	return err
 }
 
 // Dom tells the server to send the dom event values across the websocket.
 func Dom(frame *cdp.Frame, timeout time.Duration) error {
-	return cdp.NewAction(frame, []cdp.Event{}, []cdp.Step{
+	err := cdp.NewAction(frame, []cdp.Event{}, []cdp.Step{
 		cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMEnable, Params: &dom.EnableArgs{}, Reply: &dom.EnableReply{}, Timeout: timeout},
 	}).Run()
+	if err != nil {
+		lg.Print(err)
+	}
+	return err
 }
 
 // Page tells the server to send the page event values across the websocket.
 func Page(frame *cdp.Frame, timeout time.Duration) error {
-	return cdp.NewAction(frame, []cdp.Event{}, []cdp.Step{
+	err := cdp.NewAction(frame, []cdp.Event{}, []cdp.Step{
 		cdp.Step{ID: frame.RequestID.GetNext(), Method: page.CommandPageEnable, Params: &page.EnableArgs{}, Reply: &page.EnableReply{}, Timeout: timeout},
 	}).Run()
+	if err != nil {
+		lg.Print(err)
+	}
+	return err
 }
 
 // Network tells the server to send the network event values across the websocket.
 func Network(frame *cdp.Frame, timeout time.Duration) error {
-	return cdp.NewAction(frame, []cdp.Event{}, []cdp.Step{
+	err := cdp.NewAction(frame, []cdp.Event{}, []cdp.Step{
 		cdp.Step{ID: frame.RequestID.GetNext(), Method: network.CommandNetworkEnable, Params: &network.EnableArgs{}, Reply: &network.EnableReply{}, Timeout: timeout},
 	}).Run()
+	if err != nil {
+		lg.Print(err)
+	}
+	return err
 }

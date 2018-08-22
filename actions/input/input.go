@@ -15,7 +15,8 @@ func Fill(frame *cdp.Frame, fill string, timeout time.Duration) error {
 				cdp.Step{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchKeyEvent, Params: &input.DispatchKeyEventArgs{Type: "char", Text: string(key)}, Reply: &input.DispatchKeyEventReply{}, Timeout: timeout},
 			}).Run()
 		if err != nil {
-			log.Fatal(err)
+			log.Print(err)
+			return err
 		}
 	}
 	return nil
