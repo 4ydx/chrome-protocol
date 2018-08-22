@@ -73,6 +73,9 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache) {
 			if err != nil {
 				log.Fatal(err)
 			}
+			// DEBUG
+			// time.Sleep(time.Second * 1)
+
 			stepComplete <- struct{}{}
 			continue
 		}
@@ -83,6 +86,7 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache) {
 			if err != nil {
 				log.Fatal(err)
 			}
+			stepComplete <- struct{}{}
 			continue
 		}
 
