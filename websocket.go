@@ -121,7 +121,7 @@ func Write(c *websocket.Conn, actionChan <-chan *Action, ac *ActionCache, allCom
 
 			err := c.WriteMessage(websocket.TextMessage, action.ToJSON())
 			if err != nil {
-				fmt.Println("write:", err)
+				log.Println("write:", err)
 				return
 			}
 		case <-allComplete:
