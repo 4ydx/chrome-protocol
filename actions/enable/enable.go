@@ -63,3 +63,14 @@ func Network(frame *cdp.Frame, timeout time.Duration) error {
 	}
 	return err
 }
+
+// Runtime tells the server to send the runtime event values across the websocket.
+func Runtime(frame *cdp.Frame, timeout time.Duration) error {
+	err := cdp.NewAction(frame, []cdp.Event{}, []cdp.Step{
+		cdp.Step{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeEnable, Params: &runtime.EnableArgs{}, Reply: &runtime.EnableReply{}, Timeout: timeout},
+	}).Run()
+	if err != nil {
+		lg.Print(err)
+	}
+	return err
+}
