@@ -132,11 +132,11 @@ func Focus(frame *cdp.Frame, find string, timeout time.Duration) error {
 // Click on the first element matching the find parameter.
 // Any events that need to be tracked as a result of the click must be included.
 // This will insure that the click action waits until required events are fired.
-func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Duration) error {
+func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Duration) ([]cdp.Event, error) {
 	target, err := FindFirstElementNodeID(frame, find, timeout)
 	if err != nil {
 		log.Print(err)
-		return err
+		return events, err
 	}
 	a0 := cdp.NewAction(frame, []cdp.Event{},
 		[]cdp.Step{
@@ -145,7 +145,7 @@ func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Durat
 	err = a0.Run()
 	if err != nil {
 		log.Print(err)
-		return err
+		return events, err
 	}
 
 	// Box is an array of quad vertices, x immediately followed by y for each point, points clock-wise.
@@ -163,7 +163,7 @@ func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Durat
 		}).Run()
 	if err != nil {
 		log.Print(err)
-		return err
+		return events, err
 	}
-	return nil
+	return events, nil
 }

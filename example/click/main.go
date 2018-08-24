@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	ppage "github.com/4ydx/cdp/protocol/page"
 	"github.com/4ydx/chrome-protocol"
 	"github.com/4ydx/chrome-protocol/actions/dom"
 	"github.com/4ydx/chrome-protocol/actions/enable"
@@ -41,9 +43,19 @@ func main() {
 	//
 	// Note that we are passing in the required navigation events that will fire as a result of the click.
 	// In other words, this click will not be considered completed until the resulting navigation is complete.
-	if err := dom.Click(frame, "gb_70", page.GetNavigationEvents(), time.Second*5); err != nil {
+	//
+	// In addition, there is a "Page.navigatedWithinDocument" which is the page and url that is ultimately displayed.
+	// The only way to be able to see this is to run this binary (./click) and then look at the resulting "log.txt" file.
+	// Internally you will find the event firing while the login page frame is being loaded.
+	events := []cdp.Event{
+		cdp.Event{Name: ppage.EventPageNavigatedWithinDocument, Value: &ppage.NavigatedWithinDocumentReply{}, IsRequired: true},
+	}
+	events = append(events, page.GetNavigationEvents()...)
+	events, err := dom.Click(frame, "gb_70", events, time.Second*5)
+	if err != nil {
 		panic(err)
 	}
+	fmt.Printf("%+v\n", events[0].Value.(*ppage.NavigatedWithinDocumentReply).URL)
 
 	log.Printf("\n-- All completed for %s --\n", frame.FrameID)
 }
