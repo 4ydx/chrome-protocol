@@ -230,25 +230,25 @@ func (act *Action) SetEvent(name string, m Message) error {
 }
 
 // SetResult applies the message returns to the current step and advances the step.
-func (ac *Action) SetResult(m Message) error {
-	ac.Lock()
-	defer ac.Unlock()
+func (act *Action) SetResult(m Message) error {
+	act.Lock()
+	defer act.Unlock()
 
-	s := ac.Steps[ac.StepIndex]
-	frameID := ac.Frame.GetFrameID()
+	s := act.Steps[act.StepIndex]
+	frameID := act.Frame.GetFrameID()
 	if frameID == "" {
 		err := s.Reply.UnmarshalJSON(m.Result)
 		if err != nil {
 			log.Fatalf("Unmarshal error: %s", err)
 		}
-		ac.Frame.SetFrameID(s.Reply.GetFrameID())
+		act.Frame.SetFrameID(s.Reply.GetFrameID())
 	} else {
 		if ok := s.Reply.MatchFrameID(frameID, m.Result); !ok {
 			log.Printf("No matching frameID")
 			return nil
 		}
 	}
-	ac.StepIndex++
+	act.StepIndex++
 
 	log.Printf(".STP COMPLETE: %+v\n", s)
 	log.Printf("             : %+v\n", s.Params)
@@ -258,12 +258,12 @@ func (ac *Action) SetResult(m Message) error {
 }
 
 // EventsComplete indicates whether or not all required events have received a message from the server.
-func (ac *Action) EventsComplete() bool {
-	ac.RLock()
-	defer ac.RUnlock()
+func (act *Action) EventsComplete() bool {
+	act.RLock()
+	defer act.RUnlock()
 
 	complete := true
-	for _, e := range ac.Events {
+	for _, e := range act.Events {
 		if e.IsRequired && !e.IsFound {
 			complete = false
 		}
