@@ -23,18 +23,23 @@ var (
 
 	// Cache stores the Action that is currently active.
 	Cache *ActionCache
+
+	// LogFile is the file that all log output will be written to.
+	LogFile *os.File
 )
 
-// Start prepares required resources to begin automation.
-func Start(port int) *Frame {
-	f, err := os.Create("log.txt")
+func init() {
+	LogFile, err := os.Create("log.txt")
 	if err != nil {
 		panic(err)
 	}
 	//log.SetFlags(log.Lshortfile | log.LstdFlags | log.Lmicroseconds)
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
-	log.SetOutput(f)
+	log.SetOutput(LogFile)
+}
 
+// Start prepares required resources to begin automation.
+func Start(port int) *Frame {
 	Conn = GetWebsocket(port)
 	Cache = &ActionCache{
 		RWMutex: &sync.RWMutex{},
@@ -59,7 +64,9 @@ func Start(port int) *Frame {
 
 // Stop closes used resources.
 func Stop() {
-	defer Conn.Close()
-
+	defer func() {
+		Conn.Close()
+		LogFile.Close()
+	}()
 	AllComplete <- struct{}{}
 }

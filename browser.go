@@ -69,7 +69,7 @@ func (b *Browser) Start(path string, port int, args ...string) {
 	go func() {
 		sout := bufio.NewScanner(stdout)
 		for sout.Scan() {
-			log.Printf(sout.Text())
+			log.Print(sout.Text())
 		}
 		if err := sout.Err(); err != nil {
 			log.Printf("error: %s", err)
@@ -78,7 +78,7 @@ func (b *Browser) Start(path string, port int, args ...string) {
 	go func() {
 		serr := bufio.NewScanner(stderr)
 		for serr.Scan() {
-			log.Printf(serr.Text())
+			log.Print(serr.Text())
 		}
 		if err := serr.Err(); err != nil {
 			log.Printf("error: %s", err)
