@@ -37,14 +37,20 @@ import (
 	"time"
 )
 
-// Start the browser manually: google-chrome --remote-debugging-port=9222 --no-first-run --no-default-browser-check --user-data-dir=$(mktemp -d)
-
 func main() {
-	port := 9222
-	frame := cdp.Start(port)
-	defer cdp.Stop()
+	browser := cdp.Browser{}
+	browser.Start("/usr/bin/google-chrome", 9222)
 
-	// Enable page events 
+	frame := cdp.Start(9222)
+	defer func() {
+		cdp.Stop()
+
+		// Give yourself time to view the final page in the browser.
+		time.Sleep(3 * time.Second)
+		browser.Stop()
+	}()
+
+	// Enable page events
 	if err := enable.Page(frame, time.Second*2); err != nil {
 		panic(err)
 	}
