@@ -20,7 +20,8 @@ type Browser struct {
 }
 
 // Start accepts the path to the browser's binary.
-func (b *Browser) Start(path string, port int, args ...string) {
+func NewBrowser(path string, port int, args ...string) *Browser {
+	b := &Browser{}
 	b.Port = port
 
 	// Add required values
@@ -84,6 +85,7 @@ func (b *Browser) Start(path string, port int, args ...string) {
 			log.Printf("error: %s", err)
 		}
 	}()
+	return b
 }
 
 // Stop kills the running browser process.
