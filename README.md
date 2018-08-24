@@ -86,5 +86,4 @@ func Navigate(frame *cdp.Frame, url string, timeout time.Duration) error {
 
 # Caveats
 
-- No code yet for managing a browser.
 - Concurrent actions are currently not supported.

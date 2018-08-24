@@ -13,8 +13,17 @@ import (
 )
 
 func main() {
+	browser := cdp.Browser{}
+	browser.Start("/usr/bin/google-chrome", 9222)
+
 	frame := cdp.Start(9222)
-	defer cdp.Stop()
+	defer func() {
+		cdp.Stop()
+
+		// Give yourself time to view the final page in the browser.
+		time.Sleep(3 * time.Second)
+		browser.Stop()
+	}()
 
 	// Enable page and dom events
 	if err := enable.Page(frame, time.Second*2); err != nil {
