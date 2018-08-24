@@ -12,6 +12,7 @@ func TestShutdown(t *testing.T) {
 
 	c := GetWebsocket(8080)
 
+	// Direct use of the connection to see that data is sent/received.
 	err := c.WriteMessage(websocket.TextMessage, []byte("hello"))
 	if err != nil {
 		t.Fatal(err)
