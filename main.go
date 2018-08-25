@@ -29,6 +29,20 @@ var (
 
 	// LogFile is the file that all log output will be written to.
 	LogFile *os.File
+
+	// LogLevel specifies how much information should be logged. Higher number results in more data.
+	LogLevel LogLevelValue
+)
+
+type LogLevelValue int
+
+const (
+	// LOG_BASIC records outgoing commands, their replies, and any specified events.
+	LOG_BASIC = LogLevelValue(0)
+	// LOG_DETAILS records additional details about the reply from the server for a given command/event.
+	LOG_DETAILS = LogLevelValue(1)
+	// LOG_ALL records everything.
+	LOG_ALL = LogLevelValue(2)
 )
 
 func init() {
@@ -42,7 +56,7 @@ func init() {
 }
 
 // Start prepares required resources to begin automation.
-func Start(port int) *Frame {
+func Start(port int, logLevel LogLevelValue) *Frame {
 	Conn = GetWebsocket(port)
 	Cache = &ActionCache{
 		RWMutex: &sync.RWMutex{},
@@ -52,6 +66,7 @@ func Start(port int) *Frame {
 	CacheCompleteChan = make(chan struct{})
 	ActionChan = make(chan []byte)
 	StepChan = make(chan struct{})
+	LogLevel = logLevel
 
 	go Write(Conn, ActionChan, AllComplete)
 	go Read(Conn, StepChan, CacheCompleteChan, Cache)

@@ -213,12 +213,12 @@ func (act *Action) SetEvent(name string, m Message) error {
 			if len(m.Params) > 0 {
 				if ok := e.Value.MatchFrameID(frameID, m.Params); !ok {
 					// When the frameID does not match, it is definitely not intended for the current Action.
-					log.Printf("No matching frameID")
+					log.Printf("No matching frameID %s %s", m.Method, m.Params)
 					return nil
 				}
 			} else {
 				if ok := e.Value.MatchFrameID(frameID, m.Result); !ok {
-					log.Printf("No matching frameID")
+					log.Printf("No matching frameID %s %s", m.Method, m.Result)
 					return nil
 				}
 			}
@@ -227,8 +227,10 @@ func (act *Action) SetEvent(name string, m Message) error {
 		act.Events[string(name)] = e
 
 		log.Printf(".EVT: %s %+v\n", name, m)
-		log.Printf("    : %+v\n", e)
-		log.Printf("    : %+v\n", e.Value)
+		if LogLevel >= LOG_DETAILS {
+			log.Printf("    : %+v\n", e)
+			log.Printf("    : %+v\n", e.Value)
+		}
 	}
 	return nil
 }
@@ -255,8 +257,9 @@ func (act *Action) SetResult(m Message) error {
 	act.StepIndex++
 
 	log.Printf(".STP COMPLETE: %+v\n", s)
-	log.Printf("             : %+v\n", s.Params)
-	log.Printf("             : %+v\n", s.Reply)
-
+	if LogLevel >= LOG_DETAILS {
+		log.Printf("             : %+v\n", s.Params)
+		log.Printf("             : %+v\n", s.Reply)
+	}
 	return nil
 }

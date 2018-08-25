@@ -39,7 +39,7 @@ import (
 func main() {
 	browser := cdp.NewBrowser("/usr/bin/google-chrome", 9222)
 
-	frame := cdp.Start(9222)
+	frame := cdp.Start(9222, cdp.LOG_BASIC)
 	defer func() {
 		cdp.Stop()
 
