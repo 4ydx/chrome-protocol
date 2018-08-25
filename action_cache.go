@@ -87,21 +87,41 @@ func (ac *ActionCache) SetResult(m Message) error {
 	return ac.a.SetResult(m)
 }
 
-// EventsComplete indicates whether or not all required events have received a message from the server.
-func (ac *ActionCache) EventsComplete() bool {
+// IsComplete indicates whether or not all events and steps are completed.
+func (ac *ActionCache) IsComplete() bool {
 	ac.RLock()
 	defer ac.RUnlock()
 
 	if ac.a == nil {
 		return true
 	}
-	return ac.a.EventsComplete()
+	if ac.a.IsComplete() {
+		return true
+	}
+	return false
 }
 
-// Clear removes the action from the cache.
+// IsStepComplete indicates whether or not the step portion of an action is completed.
+func (ac *ActionCache) IsStepComplete() bool {
+	ac.RLock()
+	defer ac.RUnlock()
+
+	if ac.a == nil {
+		return true
+	}
+	if ac.a.IsStepComplete() {
+		return true
+	}
+	return false
+}
+
+// Clear the cached action.
 func (ac *ActionCache) Clear() {
 	ac.Lock()
 	defer ac.Unlock()
 
+	if ac.a == nil {
+		return
+	}
 	ac.a = nil
 }

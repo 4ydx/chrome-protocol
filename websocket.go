@@ -51,7 +51,7 @@ func GetWebsocket(port int) *websocket.Conn {
 }
 
 // Read reads replies from the server over the websocket.
-func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache) {
+func Read(c *websocket.Conn, stepComplete chan<- struct{}, cacheCompleteChan chan<- struct{}, ac *ActionCache) {
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
@@ -68,25 +68,37 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, ac *ActionCache) {
 		// log.Printf(".DEC: %+v\n", m)
 
 		// All messages with an ID matching a step are set here.
+		hasStep := false
 		if ac.HasStepID(m.ID) {
 			err := ac.SetResult(m)
 			if err != nil {
 				log.Fatal(err)
 			}
-			// DEBUG
-			// time.Sleep(time.Second * 1)
-
-			stepComplete <- struct{}{}
-			continue
+			hasStep = true
 		}
 
 		// Check and then set Events related to the current Action.
+		hasEvent := false
 		if ac.HasEvent(m.Method) {
 			err = ac.SetEvent(m.Method, m)
 			if err != nil {
 				log.Fatal(err)
 			}
-			stepComplete <- struct{}{}
+			hasEvent = true
+		}
+
+		// If matched a step or an event, then this message is fully processed.
+		if hasStep || hasEvent {
+			if ac.IsComplete() {
+				log.Printf("Action Completed %s %s", ac.GetStepMethod(), ac.GetFrameID())
+				ac.Clear()
+				cacheCompleteChan <- struct{}{}
+			} else {
+				if !ac.IsStepComplete() {
+					log.Printf("Action waiting %s %s", ac.GetStepMethod(), ac.GetFrameID())
+					stepComplete <- struct{}{}
+				}
+			}
 			continue
 		}
 

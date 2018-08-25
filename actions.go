@@ -63,12 +63,26 @@ func NewAction(page *Frame, events []Event, steps []Step) *Action {
 	return act
 }
 
-// IsComplete indicates that all steps are complete.
-func (act *Action) IsComplete() bool {
+// IsStepComplete indicates that all steps and events are complete.
+func (act *Action) IsStepComplete() bool {
 	act.RLock()
 	defer act.RUnlock()
 
 	return act.StepIndex == len(act.Steps)
+}
+
+// IsComplete indicates that all steps and events are complete.
+func (act *Action) IsComplete() bool {
+	act.RLock()
+	defer act.RUnlock()
+
+	complete := true
+	for _, e := range act.Events {
+		if e.IsRequired && !e.IsFound {
+			complete = false
+		}
+	}
+	return act.StepIndex == len(act.Steps) && complete
 }
 
 // StepTimeout once timed out will trigger an error and stop the automation.
@@ -76,8 +90,7 @@ func (act *Action) StepTimeout() <-chan time.Time {
 	act.RLock()
 	defer act.RUnlock()
 
-	s := act.Steps[act.StepIndex]
-	return time.After(s.Timeout)
+	return time.After(act.Steps[act.StepIndex].Timeout)
 }
 
 // ToJSON encodes the current step.  This is the chrome devtools protocol request.
@@ -113,20 +126,11 @@ func (act *Action) Run() error {
 		select {
 		case <-stepTimeout:
 			return fmt.Errorf("step timeout %s", act.ToJSON())
+		case <-CacheCompleteChan:
+			return nil
 		case <-StepChan:
-			// Once a step is complete check to see if the action is entirely complete
-			// or if it needs to continue on to the next step.
-			if !act.IsComplete() {
-				// Execute the next Step in the Action.
-				ActionChan <- act.ToJSON()
-				stepTimeout = act.StepTimeout()
-			}
-			if act.IsComplete() && Cache.EventsComplete() {
-				log.Printf("Action Step completed %s %s", Cache.GetStepMethod(), Cache.GetFrameID())
-				Cache.Clear()
-				return nil
-			}
-			log.Printf("Action waiting %s %s", Cache.GetStepMethod(), Cache.GetFrameID())
+			ActionChan <- act.ToJSON()
+			stepTimeout = act.StepTimeout()
 		}
 	}
 }
@@ -255,18 +259,4 @@ func (act *Action) SetResult(m Message) error {
 	log.Printf("             : %+v\n", s.Reply)
 
 	return nil
-}
-
-// EventsComplete indicates whether or not all required events have received a message from the server.
-func (act *Action) EventsComplete() bool {
-	act.RLock()
-	defer act.RUnlock()
-
-	complete := true
-	for _, e := range act.Events {
-		if e.IsRequired && !e.IsFound {
-			complete = false
-		}
-	}
-	return complete
 }

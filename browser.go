@@ -19,7 +19,7 @@ type Browser struct {
 	TempDir string
 }
 
-// Start accepts the path to the browser's binary.
+// NewBrowser accepts the path to the browser's binary, the port, and any arguments that need to be passed to the binary.
 func NewBrowser(path string, port int, args ...string) *Browser {
 	b := &Browser{}
 	b.Port = port
