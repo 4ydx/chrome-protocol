@@ -13,7 +13,8 @@ func Fill(frame *cdp.Frame, find, fill string, timeout time.Duration) error {
 		return err
 	}
 	for _, key := range fill {
-		err := cdp.NewAction(frame, []cdp.Event{},
+		err := cdp.NewAction(frame,
+			[]cdp.Event{},
 			[]cdp.Step{
 				cdp.Step{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchKeyEvent, Params: &input.DispatchKeyEventArgs{Type: "char", Text: string(key)}, Reply: &input.DispatchKeyEventReply{}, Timeout: timeout},
 			}).Run()

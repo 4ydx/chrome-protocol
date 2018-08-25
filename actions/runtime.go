@@ -9,7 +9,8 @@ import (
 
 // Evaluate runs the javascript expression in the current frame's context.
 func Evaluate(frame *cdp.Frame, expression string, timeout time.Duration) (*runtime.EvaluateReply, error) {
-	action := cdp.NewAction(frame, []cdp.Event{},
+	action := cdp.NewAction(frame,
+		[]cdp.Event{},
 		[]cdp.Step{
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeEvaluate, Params: &runtime.EvaluateArgs{Expression: expression, Silent: false}, Reply: &runtime.EvaluateReply{}, Timeout: timeout},
 		})

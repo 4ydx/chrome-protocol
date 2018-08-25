@@ -11,7 +11,8 @@ import (
 
 // GetEntireDocument retrieves the root document and all children for the entire page.
 func GetEntireDocument(frame *cdp.Frame, timeout time.Duration) (*dom.GetFlattenedDocumentReply, error) {
-	a0 := cdp.NewAction(frame, []cdp.Event{},
+	a0 := cdp.NewAction(frame,
+		[]cdp.Event{},
 		[]cdp.Step{
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetFlattenedDocument, Params: &dom.GetFlattenedDocumentArgs{Depth: -1}, Reply: &dom.GetFlattenedDocumentReply{}, Timeout: timeout},
 		})
@@ -89,7 +90,8 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 		FromIndex: 0,
 		ToIndex:   ret.ResultCount,
 	}
-	a1 := cdp.NewAction(frame, []cdp.Event{},
+	a1 := cdp.NewAction(frame,
+		[]cdp.Event{},
 		[]cdp.Step{
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetSearchResults, Params: params, Reply: &dom.GetSearchResultsReply{}, Timeout: timeout},
 		})
@@ -118,7 +120,8 @@ func Focus(frame *cdp.Frame, find string, timeout time.Duration) error {
 		log.Print(err)
 		return err
 	}
-	err = cdp.NewAction(frame, []cdp.Event{},
+	err = cdp.NewAction(frame,
+		[]cdp.Event{},
 		[]cdp.Step{
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMFocus, Params: &dom.FocusArgs{NodeID: target}, Reply: &dom.FocusReply{}, Timeout: timeout},
 		}).Run()
@@ -138,7 +141,8 @@ func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Durat
 		log.Print(err)
 		return events, err
 	}
-	a0 := cdp.NewAction(frame, []cdp.Event{},
+	a0 := cdp.NewAction(frame,
+		[]cdp.Event{},
 		[]cdp.Step{
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetBoxModel, Params: &dom.GetBoxModelArgs{NodeID: target}, Reply: &dom.GetBoxModelReply{}, Timeout: timeout},
 		})
@@ -156,7 +160,8 @@ func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Durat
 	yMid := (box[5]-box[1])/2 + box[1]
 
 	// Mouse click.
-	err = cdp.NewAction(frame, events,
+	err = cdp.NewAction(frame,
+		events,
 		[]cdp.Step{
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mousePressed"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mouseReleased"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
