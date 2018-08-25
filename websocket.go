@@ -93,11 +93,11 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, cacheCompleteChan cha
 				log.Printf("Action Completed %s %s", ac.GetStepMethod(), ac.GetFrameID())
 				ac.Clear()
 				cacheCompleteChan <- struct{}{}
+			} else if !ac.IsStepComplete() {
+				log.Printf("Action Step Waiting %s %s", ac.GetStepMethod(), ac.GetFrameID())
+				stepComplete <- struct{}{}
 			} else {
-				if !ac.IsStepComplete() {
-					log.Printf("Action waiting %s %s", ac.GetStepMethod(), ac.GetFrameID())
-					stepComplete <- struct{}{}
-				}
+				log.Printf("Action Event Waiting %s %s", ac.GetStepMethod(), ac.GetFrameID())
 			}
 			continue
 		}
