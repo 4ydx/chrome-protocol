@@ -1,4 +1,4 @@
-package enable
+package actions
 
 import (
 	"github.com/4ydx/cdp/protocol/css"
@@ -13,8 +13,8 @@ import (
 	"time"
 )
 
-// All tells the server to send all event values across the websocket.
-func All(frame *cdp.Frame, timeout time.Duration) error {
+// EnableAll tells the server to send all event values across the websocket.
+func EnableAll(frame *cdp.Frame, timeout time.Duration) error {
 	// Order is important.  Dom should come first.
 	err := cdp.NewAction(frame, []cdp.Event{}, []cdp.Step{
 		cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMEnable, Params: &dom.EnableArgs{}, Reply: &dom.EnableReply{}, Timeout: timeout},
@@ -31,8 +31,8 @@ func All(frame *cdp.Frame, timeout time.Duration) error {
 	return err
 }
 
-// Dom tells the server to send the dom event values across the websocket.
-func Dom(frame *cdp.Frame, timeout time.Duration) error {
+// EnableDom tells the server to send the dom event values across the websocket.
+func EnableDom(frame *cdp.Frame, timeout time.Duration) error {
 	err := cdp.NewAction(frame, []cdp.Event{}, []cdp.Step{
 		cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMEnable, Params: &dom.EnableArgs{}, Reply: &dom.EnableReply{}, Timeout: timeout},
 	}).Run()
@@ -42,8 +42,8 @@ func Dom(frame *cdp.Frame, timeout time.Duration) error {
 	return err
 }
 
-// Page tells the server to send the page event values across the websocket.
-func Page(frame *cdp.Frame, timeout time.Duration) error {
+// EnablePage tells the server to send the page event values across the websocket.
+func EnablePage(frame *cdp.Frame, timeout time.Duration) error {
 	err := cdp.NewAction(frame, []cdp.Event{}, []cdp.Step{
 		cdp.Step{ID: frame.RequestID.GetNext(), Method: page.CommandPageEnable, Params: &page.EnableArgs{}, Reply: &page.EnableReply{}, Timeout: timeout},
 	}).Run()
@@ -53,8 +53,8 @@ func Page(frame *cdp.Frame, timeout time.Duration) error {
 	return err
 }
 
-// Network tells the server to send the network event values across the websocket.
-func Network(frame *cdp.Frame, timeout time.Duration) error {
+// EnableNetwork tells the server to send the network event values across the websocket.
+func EnableNetwork(frame *cdp.Frame, timeout time.Duration) error {
 	err := cdp.NewAction(frame, []cdp.Event{}, []cdp.Step{
 		cdp.Step{ID: frame.RequestID.GetNext(), Method: network.CommandNetworkEnable, Params: &network.EnableArgs{}, Reply: &network.EnableReply{}, Timeout: timeout},
 	}).Run()
@@ -64,8 +64,8 @@ func Network(frame *cdp.Frame, timeout time.Duration) error {
 	return err
 }
 
-// Runtime tells the server to send the runtime event values across the websocket.
-func Runtime(frame *cdp.Frame, timeout time.Duration) error {
+// EnableRuntime tells the server to send the runtime event values across the websocket.
+func EnableRuntime(frame *cdp.Frame, timeout time.Duration) error {
 	err := cdp.NewAction(frame, []cdp.Event{}, []cdp.Step{
 		cdp.Step{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeEnable, Params: &runtime.EnableArgs{}, Reply: &runtime.EnableReply{}, Timeout: timeout},
 	}).Run()

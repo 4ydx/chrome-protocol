@@ -3,11 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/4ydx/chrome-protocol"
-	"github.com/4ydx/chrome-protocol/actions/dom"
-	"github.com/4ydx/chrome-protocol/actions/enable"
-	"github.com/4ydx/chrome-protocol/actions/input"
-	"github.com/4ydx/chrome-protocol/actions/page"
-	"github.com/4ydx/chrome-protocol/actions/runtime"
+	"github.com/4ydx/chrome-protocol/actions"
 	"log"
 	"time"
 )
@@ -25,33 +21,28 @@ func main() {
 	}()
 
 	// Enable page and dom events
-	if err := enable.Page(frame, time.Second*2); err != nil {
+	if err := actions.EnablePage(frame, time.Second*2); err != nil {
 		panic(err)
 	}
-	if err := enable.Dom(frame, time.Second*2); err != nil {
+	if err := actions.EnableDom(frame, time.Second*2); err != nil {
 		panic(err)
 	}
-	if err := enable.Runtime(frame, time.Second*2); err != nil {
+	if err := actions.EnableRuntime(frame, time.Second*2); err != nil {
 		panic(err)
 	}
 
 	// Navigate
-	if err := page.Navigate(frame, "https://google.com", time.Second*5); err != nil {
-		panic(err)
-	}
-
-	// Focus
-	if err := dom.Focus(frame, "#lst-ib", time.Second*5); err != nil {
+	if err := actions.Navigate(frame, "https://google.com", time.Second*5); err != nil {
 		panic(err)
 	}
 
 	// Fill
-	if err := input.Fill(frame, "testing", time.Second*5); err != nil {
+	if err := actions.Fill(frame, "#lst-ib", "testing", time.Second*5); err != nil {
 		panic(err)
 	}
 
 	// Determine if the input has the value "testing"
-	reply, err := runtime.Evaluate(frame, "document.getElementById('lst-ib').value.toString()", time.Second*5)
+	reply, err := actions.Evaluate(frame, "document.getElementById('lst-ib').value.toString()", time.Second*5)
 	if err != nil {
 		panic(err)
 	}

@@ -2,8 +2,7 @@ package main
 
 import (
 	"github.com/4ydx/chrome-protocol"
-	"github.com/4ydx/chrome-protocol/actions/enable"
-	"github.com/4ydx/chrome-protocol/actions/page"
+	"github.com/4ydx/chrome-protocol/actions"
 	"log"
 	"time"
 )
@@ -21,12 +20,12 @@ func main() {
 	}()
 
 	// Enable page events
-	if err := enable.Page(frame, time.Second*2); err != nil {
+	if err := actions.EnablePage(frame, time.Second*2); err != nil {
 		panic(err)
 	}
 
 	// Navigate
-	if err := page.Navigate(frame, "https://google.com", time.Second*5); err != nil {
+	if err := actions.Navigate(frame, "https://google.com", time.Second*5); err != nil {
 		panic(err)
 	}
 

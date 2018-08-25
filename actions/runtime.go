@@ -1,4 +1,4 @@
-package runtime
+package actions
 
 import (
 	"github.com/4ydx/cdp/protocol/runtime"
@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// Evaluate runs the javascript expression in the current frame's context.
 func Evaluate(frame *cdp.Frame, expression string, timeout time.Duration) (*runtime.EvaluateReply, error) {
 	action := cdp.NewAction(frame, []cdp.Event{},
 		[]cdp.Step{

@@ -1,4 +1,4 @@
-package input
+package actions
 
 import (
 	"github.com/4ydx/cdp/protocol/input"
@@ -8,7 +8,10 @@ import (
 )
 
 // Fill on the first element node that matches the find parameter.  dom.Focus can be called in order to focus an element in order to fill it.
-func Fill(frame *cdp.Frame, fill string, timeout time.Duration) error {
+func Fill(frame *cdp.Frame, find, fill string, timeout time.Duration) error {
+	if err := Focus(frame, find, timeout); err != nil {
+		return err
+	}
 	for _, key := range fill {
 		err := cdp.NewAction(frame, []cdp.Event{},
 			[]cdp.Step{

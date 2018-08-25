@@ -4,9 +4,7 @@ import (
 	"fmt"
 	ppage "github.com/4ydx/cdp/protocol/page"
 	"github.com/4ydx/chrome-protocol"
-	"github.com/4ydx/chrome-protocol/actions/dom"
-	"github.com/4ydx/chrome-protocol/actions/enable"
-	"github.com/4ydx/chrome-protocol/actions/page"
+	"github.com/4ydx/chrome-protocol/actions"
 	"log"
 	"time"
 )
@@ -24,18 +22,18 @@ func main() {
 	}()
 
 	// Enable page, dom, and network events
-	if err := enable.Page(frame, time.Second*2); err != nil {
+	if err := actions.EnablePage(frame, time.Second*2); err != nil {
 		panic(err)
 	}
-	if err := enable.Dom(frame, time.Second*2); err != nil {
+	if err := actions.EnableDom(frame, time.Second*2); err != nil {
 		panic(err)
 	}
-	if err := enable.Network(frame, time.Second*2); err != nil {
+	if err := actions.EnableNetwork(frame, time.Second*2); err != nil {
 		panic(err)
 	}
 
 	// Navigate
-	if err := page.Navigate(frame, "https://google.com", time.Second*5); err != nil {
+	if err := actions.Navigate(frame, "https://google.com", time.Second*5); err != nil {
 		panic(err)
 	}
 
@@ -50,8 +48,8 @@ func main() {
 	events := []cdp.Event{
 		cdp.Event{Name: ppage.EventPageNavigatedWithinDocument, Value: &ppage.NavigatedWithinDocumentReply{}, IsRequired: true},
 	}
-	events = append(events, page.GetNavigationEvents()...)
-	events, err := dom.Click(frame, "gb_70", events, time.Second*5)
+	events = append(events, actions.GetNavigationEvents()...)
+	events, err := actions.Click(frame, "gb_70", events, time.Second*5)
 	if err != nil {
 		panic(err)
 	}
