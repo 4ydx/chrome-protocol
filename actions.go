@@ -63,7 +63,7 @@ func NewAction(page *Frame, events []Event, steps []Step) *Action {
 	return act
 }
 
-// IsStepComplete indicates that all steps and events are complete.
+// IsStepComplete indicates that all steps are complete.
 func (act *Action) IsStepComplete() bool {
 	act.RLock()
 	defer act.RUnlock()
