@@ -58,7 +58,7 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, cacheCompleteChan cha
 			log.Println("Read error:", err)
 			return
 		}
-		if LogLevel > 0 {
+		if LogLevel > LOG_BASIC {
 			log.Printf(".RAW: %s\n", message)
 		}
 
@@ -119,11 +119,11 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, cacheCompleteChan cha
 					log.Fatal("Unmarshal error:", err, m.Params)
 				}
 			}
-			if LogLevel > 0 {
+			if LogLevel > LOG_BASIC {
 				log.Printf(".GOT event %+v\n", e)
 			}
 		} else {
-			if LogLevel > 0 {
+			if LogLevel > LOG_BASIC {
 				log.Printf(".SKP event %s %s %s\n", m.Method, m.Params, m.Result)
 			}
 		}
