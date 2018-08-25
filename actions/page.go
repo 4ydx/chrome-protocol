@@ -23,16 +23,17 @@ func GetNavigationEvents() []cdp.Event {
 }
 
 // Navigate sends the browser to the given URL
-func Navigate(frame *cdp.Frame, url string, timeout time.Duration) error {
-	err := cdp.NewAction(frame,
-		GetNavigationEvents(),
+func Navigate(frame *cdp.Frame, url string, timeout time.Duration) ([]cdp.Event, error) {
+	events := GetNavigationEvents()
+	action := cdp.NewAction(frame,
+		events,
 		[]cdp.Step{
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
-		}).Run()
-	if err != nil {
+		})
+	if err := action.Run(); err != nil {
 		log.Print(err)
 	}
-	return err
+	return events, nil
 }
 
 // Screenshot captures a screenshot and saves it to the given destination.

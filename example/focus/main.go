@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// Navigate
-	if err := actions.Navigate(frame, "https://google.com", time.Second*5); err != nil {
+	if _, err := actions.Navigate(frame, "https://google.com", time.Second*5); err != nil {
 		panic(err)
 	}
 
