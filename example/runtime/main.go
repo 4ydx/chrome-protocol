@@ -11,7 +11,7 @@ import (
 func main() {
 	browser := cdp.NewBrowser("/usr/bin/google-chrome", 9222)
 
-	frame := cdp.Start(9222, cdp.LOG_BASIC)
+	frame := cdp.Start(9222, cdp.LogBasic)
 	defer func() {
 		cdp.Stop()
 
@@ -42,7 +42,7 @@ func main() {
 	}
 
 	// Determine if the input has the value "testing"
-	reply, err := actions.Evaluate(frame, "document.getElementById('lst-ib').value.toString()", time.Second*5)
+	reply, err := actions.Evaluate(frame, "document.getElementById('lst-ib').value", time.Second*5)
 	if err != nil {
 		panic(err)
 	}

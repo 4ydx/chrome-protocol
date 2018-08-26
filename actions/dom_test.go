@@ -11,7 +11,7 @@ import (
 func TestClick(t *testing.T) {
 	browser := cdp.NewBrowser("/usr/bin/google-chrome", 9222)
 
-	frame := cdp.Start(9222, cdp.LOG_BASIC)
+	frame := cdp.Start(9222, cdp.LogBasic)
 	defer func() {
 		cdp.Stop()
 		browser.Stop()

@@ -34,15 +34,16 @@ var (
 	LogLevel LogLevelValue
 )
 
+// LogLevelValue is the type for loglevel information.
 type LogLevelValue int
 
 const (
-	// LOG_BASIC records outgoing commands, their replies, and any specified events.
-	LOG_BASIC = LogLevelValue(0)
-	// LOG_DETAILS records additional details about the reply from the server for a given command/event.
-	LOG_DETAILS = LogLevelValue(1)
-	// LOG_ALL records everything.
-	LOG_ALL = LogLevelValue(2)
+	// LogBasic records outgoing commands, their replies, and any specified events.
+	LogBasic = LogLevelValue(0)
+	// LogDetails records additional details about the reply from the server for a given command/event.
+	LogDetails = LogLevelValue(1)
+	// LogAll records everything.
+	LogAll = LogLevelValue(2)
 )
 
 func init() {

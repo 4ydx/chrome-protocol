@@ -227,7 +227,7 @@ func (act *Action) SetEvent(name string, m Message) error {
 		act.Events[string(name)] = e
 
 		log.Printf(".EVT: %s %+v\n", name, m)
-		if LogLevel >= LOG_DETAILS {
+		if LogLevel >= LogDetails {
 			log.Printf("    : %+v\n", e)
 			log.Printf("    : %+v\n", e.Value)
 		}
@@ -257,7 +257,7 @@ func (act *Action) SetResult(m Message) error {
 	act.StepIndex++
 
 	log.Printf(".STP COMPLETE: %+v\n", s)
-	if LogLevel >= LOG_DETAILS {
+	if LogLevel >= LogDetails {
 		log.Printf("             : %+v\n", s.Params)
 		log.Printf("             : %+v\n", s.Reply)
 	}
