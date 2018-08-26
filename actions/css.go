@@ -24,9 +24,9 @@ func GetComputedStyleForNode(frame *cdp.Frame, nodeID dom.NodeID, timeout time.D
 	return action.Steps[0].Reply.(*css.GetComputedStyleForNodeReply), nil
 }
 
-// WaitForComputedStyle finds the first element on a page by id, css, or xpath and waits until the given css name is set to the given css value.
-// For instance, wait until the cssName "display" is set to cssValue "none" on the element located by "find".  That is, until the html element disappears from view.
-func WaitForComputedStyle(frame *cdp.Frame, find, cssName, cssValue string, timeout time.Duration) error {
+// WaitForComputedStyle finds the first element on a page by id, css, or xpath and waits until the given css propery is set to the given css value.
+// For instance, wait until the cssPropery "display" is set to cssValue "none".  That is, until the found html element disappears from view.
+func WaitForComputedStyle(frame *cdp.Frame, find, cssPropery, cssValue string, timeout time.Duration) error {
 	nodeID, err := FindFirstElementNodeID(frame, find, timeout)
 	if err != nil {
 		log.Print(err)
@@ -45,7 +45,7 @@ func WaitForComputedStyle(frame *cdp.Frame, find, cssName, cssValue string, time
 		}
 		visible := true
 		for _, s := range style.ComputedStyle {
-			if s.Name == cssName && s.Value == cssValue {
+			if s.Name == cssPropery && s.Value == cssValue {
 				visible = false
 			}
 		}
