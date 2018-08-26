@@ -9,7 +9,7 @@ supports the protocol.
 
 This is still a work in progress.
 
-# Examples
+## Examples
 
 Examples of basic actions are included in the example folder.
 
@@ -62,7 +62,7 @@ func main() {
 }
 ```
 
-# Creating your own Actions
+## Creating your own Actions
 
 Actions are the requests that you make to the browser in order to automate different tasks.  For instance, asking
 the browser to navigate to a particular url.  When you construct an action, you need to fill in at least one "step" that consists
@@ -88,6 +88,6 @@ func Navigate(frame *cdp.Frame, url string, timeout time.Duration) error {
 }
 ```
 
-# Caveats
+## Caveats
 
 - Concurrent actions are currently not supported.
