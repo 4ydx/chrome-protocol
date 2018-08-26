@@ -50,7 +50,7 @@ func main() {
 	// We expect that the value of the element will be "testing".  I am seeing a value of &"testing" and I'm not familiar
 	// enough to know why this is prepended by an ampersand, but it is there.  The actual data in the byte array is only
 	// the values "testing".
-	fmt.Printf("%s\n", reply.Result.Value)
+	fmt.Printf("%s\n", *reply.Result.Value)
 
 	log.Printf("\n-- All completed for %s --\n", frame.FrameID)
 }
