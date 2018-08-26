@@ -13,6 +13,19 @@ import (
 	"time"
 )
 
+// GetFrameNavigatedURL returns the url of the FrameNavigatedReply object in the array of events.
+// When using GetNavigationEvents in conjunction with the Click action, the resulting events will have one FrameNavigatedReply.
+// Using this method allows quick access of the FrameNavigatedReply URL, which is usually the navigated to URL for simple webpages.
+func GetFrameNavigatedURL(events []cdp.Event) string {
+	for _, event := range events {
+		switch event.Value.(type) {
+		case *page.FrameNavigatedReply:
+			return event.Value.(*page.FrameNavigatedReply).Frame.URL
+		}
+	}
+	return ""
+}
+
 // GetNavigationEvents returns all events that are expected to occur after a page navigation api request is made.
 func GetNavigationEvents() []cdp.Event {
 	return []cdp.Event{
