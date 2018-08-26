@@ -11,7 +11,7 @@ This is still a work in progress.
 
 ## Examples
 
-Examples of basic actions are included in the example folder.
+Look under [github.com/4ydx/chrome-protocol/actions](https://github.com/4ydx/chrome-protocol/actions).  The testing files are the examples.
 
 - Click
 - Fill
