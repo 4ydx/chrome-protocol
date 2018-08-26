@@ -84,3 +84,16 @@ func EnableRuntime(frame *cdp.Frame, timeout time.Duration) error {
 	}
 	return err
 }
+
+// EnableCSS tells the server to send the runtime event values across the websocket.
+func EnableCSS(frame *cdp.Frame, timeout time.Duration) error {
+	err := cdp.NewAction(frame,
+		[]cdp.Event{},
+		[]cdp.Step{
+			cdp.Step{ID: frame.RequestID.GetNext(), Method: css.CommandCSSEnable, Params: &css.EnableArgs{}, Reply: &css.EnableReply{}, Timeout: timeout},
+		}).Run()
+	if err != nil {
+		lg.Print(err)
+	}
+	return err
+}
