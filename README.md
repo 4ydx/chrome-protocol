@@ -18,6 +18,7 @@ Look under [github.com/4ydx/chrome-protocol/actions](https://github.com/4ydx/chr
 - Focus
 - Navigation
 - Screenshot
+- As well as other actions (css style retrieval, javascript evaluation, etc).
 
 I will be working on other actions as I need them for my own personal projects.  
 
