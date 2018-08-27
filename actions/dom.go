@@ -19,6 +19,7 @@ func GetEntireDocument(frame *cdp.Frame, timeout time.Duration) (*dom.GetFlatten
 	err := a0.Run()
 	if err != nil {
 		log.Print(err)
+		return nil, err
 	}
 	return a0.Steps[0].Reply.(*dom.GetFlattenedDocumentReply), err
 }
