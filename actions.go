@@ -128,9 +128,7 @@ func (act *Action) Run() error {
 			return fmt.Errorf("step timeout %s", act.ToJSON())
 		case <-CacheCompleteChan:
 			return nil
-		case <-StepChan:
-			ActionChan <- act.ToJSON()
-			stepTimeout = act.StepTimeout()
+		case stepTimeout = <-StepChan:
 		}
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 )
 
 // GetWebsocket returns a websocket connection to the running browser.
@@ -51,7 +52,7 @@ func GetWebsocket(port int) *websocket.Conn {
 }
 
 // Read reads replies from the server over the websocket.
-func Read(c *websocket.Conn, stepComplete chan<- struct{}, cacheCompleteChan chan<- struct{}, ac *ActionCache) {
+func Read(c *websocket.Conn, stepComplete chan (<-chan time.Time), cacheCompleteChan chan<- struct{}, ac *ActionCache) {
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
@@ -96,8 +97,9 @@ func Read(c *websocket.Conn, stepComplete chan<- struct{}, cacheCompleteChan cha
 				ac.Clear()
 				cacheCompleteChan <- struct{}{}
 			} else if !ac.IsStepComplete() {
-				log.Printf("Action Step Waiting %s %s", ac.GetStepMethod(), ac.GetFrameID())
-				stepComplete <- struct{}{}
+				log.Printf("Action Next Step %s %s", ac.GetStepMethod(), ac.GetFrameID())
+				ActionChan <- ac.ToJSON()
+				stepComplete <- ac.StepTimeout()
 			} else {
 				log.Printf("Action Event Waiting %s %s", ac.GetStepMethod(), ac.GetFrameID())
 			}

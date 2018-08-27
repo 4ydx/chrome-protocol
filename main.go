@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 )
 
 var (
@@ -19,7 +20,7 @@ var (
 	CacheCompleteChan chan struct{}
 
 	// StepChan sends the signal that a step has been completed and an Action can advance.
-	StepChan chan struct{}
+	StepChan chan (<-chan time.Time)
 
 	// ActionChan sends Actions to the websocket.
 	ActionChan chan []byte
@@ -66,7 +67,7 @@ func Start(port int, logLevel LogLevelValue) *Frame {
 
 	CacheCompleteChan = make(chan struct{})
 	ActionChan = make(chan []byte)
-	StepChan = make(chan struct{})
+	StepChan = make(chan (<-chan time.Time))
 	LogLevel = logLevel
 
 	go Write(Conn, ActionChan, AllComplete)

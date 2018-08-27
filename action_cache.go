@@ -3,6 +3,7 @@ package cdp
 import (
 	"log"
 	"sync"
+	"time"
 )
 
 // ActionCache stores the current action for safe use across routines.
@@ -113,6 +114,28 @@ func (ac *ActionCache) IsStepComplete() bool {
 		return true
 	}
 	return false
+}
+
+// StepTimeout returns the timeout channel for the current step.
+func (ac *ActionCache) StepTimeout() <-chan time.Time {
+	ac.RLock()
+	defer ac.RUnlock()
+
+	if ac.a == nil {
+		return time.After(0)
+	}
+	return ac.a.StepTimeout()
+}
+
+// ToJSON returns the json representation of the current step.
+func (ac *ActionCache) ToJSON() []byte {
+	ac.RLock()
+	defer ac.RUnlock()
+
+	if ac.a == nil {
+		return []byte("")
+	}
+	return ac.a.ToJSON()
 }
 
 // Clear the cached action.
