@@ -27,6 +27,12 @@ func TestEnable(t *testing.T) {
 	if err := EnableNetwork(frame, time.Second*2); err != nil {
 		t.Fatal(err)
 	}
+	if err := EnableCSS(frame, time.Second*2); err != nil {
+		t.Fatal(err)
+	}
+	if err := EnableIndexedDB(frame, time.Second*2); err != nil {
+		t.Fatal(err)
+	}
 	if err := EnableAll(frame, time.Second*2); err != nil {
 		t.Fatal(err)
 	}

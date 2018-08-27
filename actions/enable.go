@@ -3,6 +3,7 @@ package actions
 import (
 	"github.com/4ydx/cdp/protocol/css"
 	"github.com/4ydx/cdp/protocol/dom"
+	"github.com/4ydx/cdp/protocol/indexeddb"
 	"github.com/4ydx/cdp/protocol/inspector"
 	"github.com/4ydx/cdp/protocol/log"
 	"github.com/4ydx/cdp/protocol/network"
@@ -21,6 +22,7 @@ func EnableAll(frame *cdp.Frame, timeout time.Duration) error {
 		[]cdp.Step{
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMEnable, Params: &dom.EnableArgs{}, Reply: &dom.EnableReply{}, Timeout: timeout},
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: css.CommandCSSEnable, Params: &css.EnableArgs{}, Reply: &css.EnableReply{}, Timeout: timeout},
+			cdp.Step{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBEnable, Params: &indexeddb.EnableArgs{}, Reply: &indexeddb.EnableReply{}, Timeout: timeout},
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: inspector.CommandInspectorEnable, Params: &inspector.EnableArgs{}, Reply: &inspector.EnableReply{}, Timeout: timeout},
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: log.CommandLogEnable, Params: &log.EnableArgs{}, Reply: &log.EnableReply{}, Timeout: timeout},
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: network.CommandNetworkEnable, Params: &network.EnableArgs{}, Reply: &network.EnableReply{}, Timeout: timeout},
@@ -91,6 +93,19 @@ func EnableCSS(frame *cdp.Frame, timeout time.Duration) error {
 		[]cdp.Event{},
 		[]cdp.Step{
 			cdp.Step{ID: frame.RequestID.GetNext(), Method: css.CommandCSSEnable, Params: &css.EnableArgs{}, Reply: &css.EnableReply{}, Timeout: timeout},
+		}).Run()
+	if err != nil {
+		lg.Print(err)
+	}
+	return err
+}
+
+// EnableIndexedDB tells the server to send the runtime event values across the websocket.
+func EnableIndexedDB(frame *cdp.Frame, timeout time.Duration) error {
+	err := cdp.NewAction(frame,
+		[]cdp.Event{},
+		[]cdp.Step{
+			cdp.Step{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBEnable, Params: &indexeddb.EnableArgs{}, Reply: &indexeddb.EnableReply{}, Timeout: timeout},
 		}).Run()
 	if err != nil {
 		lg.Print(err)
