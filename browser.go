@@ -90,6 +90,7 @@ func NewBrowser(path string, port int, args ...string) *Browser {
 
 // Stop kills the running browser process.
 func (b *Browser) Stop() {
+	log.Print("stopping the browser")
 	if b.PID == 0 {
 		log.Print("no process id for the browser")
 		return
