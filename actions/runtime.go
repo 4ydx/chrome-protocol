@@ -24,9 +24,9 @@ func Evaluate(frame *cdp.Frame, expression string, timeout time.Duration) (*runt
 }
 
 // GetProperties runs the properties of a given object.
-func GetProperties(frame *cdp.Frame, objectID string, ownProperties, accessorPropertiesOnly bool, timeout time.Duration) (*runtime.EvaluateReply, error) {
+func GetProperties(frame *cdp.Frame, objectID shared.RemoteObjectID, ownProperties, accessorPropertiesOnly bool, timeout time.Duration) (*runtime.GetPropertiesReply, error) {
 	args := &runtime.GetPropertiesArgs{
-		ObjectID:               shared.RemoteObjectID(objectID),
+		ObjectID:               objectID,
 		OwnProperties:          ownProperties,
 		AccessorPropertiesOnly: accessorPropertiesOnly,
 	}
@@ -40,5 +40,5 @@ func GetProperties(frame *cdp.Frame, objectID string, ownProperties, accessorPro
 		log.Print(err)
 		return nil, err
 	}
-	return action.Steps[0].Reply.(*runtime.EvaluateReply), nil
+	return action.Steps[0].Reply.(*runtime.GetPropertiesReply), nil
 }
