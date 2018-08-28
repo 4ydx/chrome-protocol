@@ -9,7 +9,7 @@ import (
 func TestFill(t *testing.T) {
 	browser := cdp.NewBrowser(BrowserPath, 9222)
 
-	frame := cdp.Start(9222, cdp.LogBasic)
+	frame := cdp.StartWithLog(9222, "input_test.log", cdp.LogBasic)
 	defer func() {
 		cdp.Stop()
 		browser.Stop()

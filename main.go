@@ -51,13 +51,30 @@ const (
 )
 
 func init() {
-	LogFile, err := os.Create("log.txt")
+	var err error
+	LogFile, err = os.Create("log.txt")
 	if err != nil {
 		panic(err)
 	}
 	//log.SetFlags(log.Lshortfile | log.LstdFlags | log.Lmicroseconds)
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 	log.SetOutput(LogFile)
+}
+
+// StartWithLog prepares required resources to begin automation and sets the std logger file.
+func StartWithLog(port int, logFile string, logLevel LogLevelValue) *Frame {
+	previous := LogFile
+	defer previous.Close()
+
+	var err error
+	LogFile, err = os.Create(logFile)
+	if err != nil {
+		panic(err)
+	}
+	//log.SetFlags(log.Lshortfile | log.LstdFlags | log.Lmicroseconds)
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
+	log.SetOutput(LogFile)
+	return Start(port, logLevel)
 }
 
 // Start prepares required resources to begin automation.

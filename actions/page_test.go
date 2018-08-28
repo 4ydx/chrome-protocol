@@ -11,7 +11,7 @@ import (
 func TestNavigate(t *testing.T) {
 	browser := cdp.NewBrowser(BrowserPath, 9222)
 
-	frame := cdp.Start(9222, cdp.LogBasic)
+	frame := cdp.StartWithLog(9222, "page_test.log", cdp.LogBasic)
 	defer func() {
 		cdp.Stop()
 		browser.Stop()
