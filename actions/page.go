@@ -45,6 +45,7 @@ func Navigate(frame *cdp.Frame, url string, timeout time.Duration) ([]cdp.Event,
 		})
 	if err := action.Run(); err != nil {
 		log.Print(err)
+		return events, err
 	}
 	return events, nil
 }
