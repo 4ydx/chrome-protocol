@@ -164,8 +164,20 @@ func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Durat
 	err = cdp.NewAction(frame,
 		events,
 		[]cdp.Command{
-			cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mousePressed"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
-			cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mouseReleased"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{
+				X:          xMid,
+				Y:          yMid,
+				Button:     "left",
+				ClickCount: 1,
+				Type:       "mousePressed",
+			}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{
+				X:          xMid,
+				Y:          yMid,
+				Button:     "left",
+				ClickCount: 1,
+				Type:       "mouseReleased",
+			}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
 		}).Run()
 	if err != nil {
 		log.Print(err)
