@@ -125,10 +125,17 @@ func (act *Action) Run() error {
 	for {
 		select {
 		case <-stepTimeout:
+			// The current action's current step has timed out.
 			return fmt.Errorf("step timeout %s", act.ToJSON())
 		case <-CacheCompleteChan:
+			// The current action is complete.
 			return nil
+		case <-StepError:
+			// Perform a retry on the current step.
+			ActionChan <- act.ToJSON()
 		case stepTimeout = <-StepChan:
+			// Set the current timeout to the next step's timeout.
+			log.Print("Next step timeout set.")
 		}
 	}
 }
@@ -243,7 +250,8 @@ func (act *Action) SetResult(m Message) error {
 	if frameID == "" {
 		err := s.Reply.UnmarshalJSON(m.Result)
 		if err != nil {
-			log.Fatalf("Unmarshal error: %s", err)
+			log.Printf("Unmarshal error: %s", err)
+			return err
 		}
 		act.Frame.SetFrameID(s.Reply.GetFrameID())
 	} else {

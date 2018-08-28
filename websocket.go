@@ -52,7 +52,7 @@ func GetWebsocket(port int) *websocket.Conn {
 }
 
 // Read reads replies from the server over the websocket.
-func Read(c *websocket.Conn, stepComplete chan (<-chan time.Time), cacheCompleteChan chan<- struct{}, ac *ActionCache) {
+func Read(c *websocket.Conn, stepComplete chan (<-chan time.Time), stepError chan<- struct{}, cacheCompleteChan chan<- struct{}, ac *ActionCache) {
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
@@ -72,22 +72,21 @@ func Read(c *websocket.Conn, stepComplete chan (<-chan time.Time), cacheComplete
 
 		// All messages with an ID matching a step are set here.
 		hasStep := false
-		if ac.HasStepID(m.ID) {
+		if hasStep = ac.HasStepID(m.ID); hasStep {
 			err := ac.SetResult(m)
 			if err != nil {
-				log.Fatal(err)
+				stepError <- struct{}{}
+				continue
 			}
-			hasStep = true
 		}
 
 		// Check and then set Events related to the current Action.
 		hasEvent := false
-		if ac.HasEvent(m.Method) {
+		if hasEvent = ac.HasEvent(m.Method); hasEvent {
 			err = ac.SetEvent(m.Method, m)
 			if err != nil {
 				log.Fatal(err)
 			}
-			hasEvent = true
 		}
 
 		// If matched a step or an event, then this message is fully processed.
