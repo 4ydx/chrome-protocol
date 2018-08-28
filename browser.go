@@ -17,11 +17,22 @@ type Browser struct {
 	Port    int
 	PID     int
 	TempDir string
+	LogFile *os.File
 }
 
 // NewBrowser accepts the path to the browser's binary, the port, and any arguments that need to be passed to the binary.
-func NewBrowser(path string, port int, args ...string) *Browser {
+func NewBrowser(path string, port int, logfile string, args ...string) *Browser {
 	b := &Browser{}
+
+	var err error
+	b.LogFile, err = os.Create(logfile)
+	if err != nil {
+		panic(err)
+	}
+	log.SetFlags(log.Lshortfile | log.LstdFlags | log.Lmicroseconds)
+	//log.SetFlags(log.LstdFlags | log.Lmicroseconds)
+	log.SetOutput(b.LogFile)
+
 	b.Port = port
 
 	// Add required values

@@ -15,7 +15,7 @@ func Evaluate(frame *cdp.Frame, expression string, timeout time.Duration) (*runt
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeEvaluate, Params: &runtime.EvaluateArgs{Expression: expression, Silent: false}, Reply: &runtime.EvaluateReply{}, Timeout: timeout},
 		})
-	err := action.Run()
+	err := action.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return nil, err
@@ -35,7 +35,7 @@ func GetProperties(frame *cdp.Frame, objectID shared.RemoteObjectID, ownProperti
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeGetProperties, Params: args, Reply: &runtime.GetPropertiesReply{}, Timeout: timeout},
 		})
-	err := action.Run()
+	err := action.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return nil, err

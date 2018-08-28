@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"time"
 )
 
 // GetWebsocket returns a websocket connection to the running browser.
@@ -52,14 +51,14 @@ func GetWebsocket(port int) *websocket.Conn {
 }
 
 // Read reads replies from the server over the websocket.
-func Read(c *websocket.Conn, commandComplete chan (<-chan time.Time), cacheCompleteChan chan<- struct{}, ac *ActionCache) {
+func Read(frame *Frame) {
 	for {
-		_, message, err := c.ReadMessage()
+		_, message, err := frame.Conn.ReadMessage()
 		if err != nil {
 			log.Println("Read error:", err)
 			return
 		}
-		if LogLevel > LogBasic {
+		if frame.LogLevel > LogBasic {
 			log.Printf(".RAW: %s\n", message)
 		}
 
@@ -72,19 +71,19 @@ func Read(c *websocket.Conn, commandComplete chan (<-chan time.Time), cacheCompl
 
 		// All messages with an ID matching a command are set here.
 		hasCommand := false
-		if hasCommand = ac.HasCommandID(m.ID); hasCommand {
-			err := ac.SetResult(m)
+		if hasCommand = frame.Cache.HasCommandID(m.ID); hasCommand {
+			err := frame.Cache.SetResult(m)
 			if err != nil {
 				// An unmarshal error means that the server sent an error message.  Retry.
-				ActionChan <- ac.ToJSON()
+				frame.ActionChan <- frame.Cache.ToJSON()
 				continue
 			}
 		}
 
 		// Check and then set Events related to the current Action.
 		hasEvent := false
-		if hasEvent = ac.HasEvent(m.Method); hasEvent {
-			err = ac.SetEvent(m.Method, m)
+		if hasEvent = frame.Cache.HasEvent(m.Method); hasEvent {
+			err = frame.Cache.SetEvent(m.Method, m)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -92,16 +91,16 @@ func Read(c *websocket.Conn, commandComplete chan (<-chan time.Time), cacheCompl
 
 		// If matched a command or an event, then this message is fully processed.
 		if hasCommand || hasEvent {
-			if ac.IsComplete() {
-				log.Printf("Action Completed %s %s", ac.GetCommandMethod(), ac.GetFrameID())
-				ac.Clear()
-				cacheCompleteChan <- struct{}{}
-			} else if !ac.IsCommandComplete() {
-				log.Printf("Action Next Command %s %s", ac.GetCommandMethod(), ac.GetFrameID())
-				ActionChan <- ac.ToJSON()
-				commandComplete <- ac.CommandTimeout()
+			if frame.Cache.IsComplete() {
+				log.Printf("Action Completed %s %s", frame.Cache.GetCommandMethod(), frame.Cache.GetFrameID())
+				frame.Cache.Clear()
+				frame.CacheCompleteChan <- struct{}{}
+			} else if !frame.Cache.IsCommandComplete() {
+				log.Printf("Action Next Command %s %s", frame.Cache.GetCommandMethod(), frame.Cache.GetFrameID())
+				frame.ActionChan <- frame.Cache.ToJSON()
+				frame.CommandChan <- frame.Cache.CommandTimeout()
 			} else {
-				log.Printf("Action Event Waiting %s %s", ac.GetCommandMethod(), ac.GetFrameID())
+				log.Printf("Action Event Waiting %s %s", frame.Cache.GetCommandMethod(), frame.Cache.GetFrameID())
 			}
 			continue
 		}
@@ -121,11 +120,11 @@ func Read(c *websocket.Conn, commandComplete chan (<-chan time.Time), cacheCompl
 					log.Fatal("Unmarshal error:", err, m.Params)
 				}
 			}
-			if LogLevel > LogBasic {
+			if frame.LogLevel > LogBasic {
 				log.Printf(".GOT event %+v\n", e)
 			}
 		} else {
-			if LogLevel > LogBasic {
+			if frame.LogLevel > LogBasic {
 				log.Printf(".SKP event %s %s %s\n", m.Method, m.Params, m.Result)
 			}
 		}
@@ -133,24 +132,24 @@ func Read(c *websocket.Conn, commandComplete chan (<-chan time.Time), cacheCompl
 }
 
 // Write writes requests to the server over the websocket.
-func Write(c *websocket.Conn, actionChan <-chan []byte, allComplete <-chan struct{}) {
+func Write(frame *Frame) {
 	osInterrupt := make(chan os.Signal, 1)
 	signal.Notify(osInterrupt, os.Interrupt)
 
 	for {
 		select {
-		case command := <-actionChan:
+		case command := <-frame.ActionChan:
 			log.Printf("!REQ: %s\n", command)
-			err := c.WriteMessage(websocket.TextMessage, command)
+			err := frame.Conn.WriteMessage(websocket.TextMessage, command)
 			if err != nil {
 				log.Println("write:", err)
 				return
 			}
-		case <-allComplete:
-			SendClose(c)
+		case <-frame.AllComplete:
+			SendClose(frame.Conn)
 			return
 		case <-osInterrupt:
-			SendClose(c)
+			SendClose(frame.Conn)
 			return
 		}
 	}

@@ -7,13 +7,10 @@ import (
 )
 
 func TestEnable(t *testing.T) {
-	browser := cdp.NewBrowser(BrowserPath, 9222)
+	browser := cdp.NewBrowser(BrowserPath, 9222, "enable_test.log")
 
-	frame := cdp.Start(9222, cdp.LogBasic)
-	defer func() {
-		cdp.Stop()
-		browser.Stop()
-	}()
+	frame := cdp.Start(browser, cdp.LogBasic)
+	defer frame.Stop(true)
 
 	if err := EnablePage(frame, time.Second*2); err != nil {
 		t.Fatal(err)

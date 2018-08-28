@@ -43,7 +43,7 @@ func Navigate(frame *cdp.Frame, url string, timeout time.Duration) ([]cdp.Event,
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
 		})
-	if err := action.Run(); err != nil {
+	if err := action.Run(frame); err != nil {
 		log.Print(err)
 		return events, err
 	}
@@ -66,7 +66,7 @@ func Screenshot(frame *cdp.Frame, destination, format string, quality int, clip 
 				cdp.Command{ID: frame.RequestID.GetNext(), Method: page.CommandPageCaptureScreenshot, Params: &page.CaptureScreenshotArgs{Format: format, Quality: quality}, Reply: &page.CaptureScreenshotReply{}, Timeout: timeout},
 			})
 	}
-	if err := action.Run(); err != nil {
+	if err := action.Run(frame); err != nil {
 		log.Print(err)
 		return err
 	}

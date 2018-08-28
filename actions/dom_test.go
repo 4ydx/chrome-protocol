@@ -9,13 +9,10 @@ import (
 )
 
 func TestClick(t *testing.T) {
-	browser := cdp.NewBrowser(BrowserPath, 9222)
+	browser := cdp.NewBrowser(BrowserPath, 9222, "dom_test.log")
 
-	frame := cdp.StartWithLog(9222, "dom_test.log", cdp.LogBasic)
-	defer func() {
-		cdp.Stop()
-		browser.Stop()
-	}()
+	frame := cdp.Start(browser, cdp.LogBasic)
+	defer frame.Stop(true)
 
 	// Enable page, dom, and network events
 	if err := EnablePage(frame, time.Second*2); err != nil {

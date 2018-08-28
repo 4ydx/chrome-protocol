@@ -16,7 +16,7 @@ func GetEntireDocument(frame *cdp.Frame, timeout time.Duration) (*dom.GetFlatten
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetFlattenedDocument, Params: &dom.GetFlattenedDocumentArgs{Depth: -1}, Reply: &dom.GetFlattenedDocumentReply{}, Timeout: timeout},
 		})
-	err := a0.Run()
+	err := a0.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return nil, err
@@ -68,7 +68,7 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMPerformSearch, Params: &dom.PerformSearchArgs{Query: find}, Reply: &dom.PerformSearchReply{}, Timeout: timeout},
 		})
-	err = a0.Run()
+	err = a0.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return found, err
@@ -96,7 +96,7 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetSearchResults, Params: params, Reply: &dom.GetSearchResultsReply{}, Timeout: timeout},
 		})
-	err = a1.Run()
+	err = a1.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return found, err
@@ -125,7 +125,7 @@ func Focus(frame *cdp.Frame, find string, timeout time.Duration) error {
 		[]cdp.Event{},
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMFocus, Params: &dom.FocusArgs{NodeID: target}, Reply: &dom.FocusReply{}, Timeout: timeout},
-		}).Run()
+		}).Run(frame)
 	if err != nil {
 		log.Print(err)
 		return err
@@ -137,6 +137,11 @@ func Focus(frame *cdp.Frame, find string, timeout time.Duration) error {
 // Any events that need to be tracked as a result of the click must be included.
 // This will insure that the click action waits until required events are fired.
 func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Duration) ([]cdp.Event, error) {
+	return ClickWithModifiers(frame, find, 0, events, timeout)
+}
+
+// ClickWithModifiers clicks on a found element using the specified key modifier values.
+func ClickWithModifiers(frame *cdp.Frame, find string, modifiers int, events []cdp.Event, timeout time.Duration) ([]cdp.Event, error) {
 	target, err := FindFirstElementNodeID(frame, find, timeout)
 	if err != nil {
 		log.Print(err)
@@ -147,7 +152,7 @@ func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Durat
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetBoxModel, Params: &dom.GetBoxModelArgs{NodeID: target}, Reply: &dom.GetBoxModelReply{}, Timeout: timeout},
 		})
-	err = a0.Run()
+	err = a0.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return events, err
@@ -165,6 +170,7 @@ func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Durat
 		events,
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{
+				Modifiers:  modifiers,
 				X:          xMid,
 				Y:          yMid,
 				Button:     "left",
@@ -172,13 +178,14 @@ func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Durat
 				Type:       "mousePressed",
 			}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{
+				Modifiers:  modifiers,
 				X:          xMid,
 				Y:          yMid,
 				Button:     "left",
 				ClickCount: 1,
 				Type:       "mouseReleased",
 			}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
-		}).Run()
+		}).Run(frame)
 	if err != nil {
 		log.Print(err)
 		return events, err

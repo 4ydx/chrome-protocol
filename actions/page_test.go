@@ -9,13 +9,10 @@ import (
 )
 
 func TestNavigate(t *testing.T) {
-	browser := cdp.NewBrowser(BrowserPath, 9222)
+	browser := cdp.NewBrowser(BrowserPath, 9222, "page_test.log")
 
-	frame := cdp.StartWithLog(9222, "page_test.log", cdp.LogBasic)
-	defer func() {
-		cdp.Stop()
-		browser.Stop()
-	}()
+	frame := cdp.Start(browser, cdp.LogBasic)
+	defer frame.Stop(true)
 
 	// Enable page events
 	if err := EnablePage(frame, time.Second*2); err != nil {
@@ -35,13 +32,10 @@ func TestNavigate(t *testing.T) {
 }
 
 func TestScreenshot(t *testing.T) {
-	browser := cdp.NewBrowser(BrowserPath, 9222)
+	browser := cdp.NewBrowser(BrowserPath, 9222, "page_test.log")
 
-	frame := cdp.Start(9222, cdp.LogBasic)
-	defer func() {
-		cdp.Stop()
-		browser.Stop()
-	}()
+	frame := cdp.Start(browser, cdp.LogBasic)
+	defer frame.Stop(true)
 
 	// Enable page events
 	if err := EnablePage(frame, time.Second*2); err != nil {

@@ -118,19 +118,19 @@ func (act *Action) ToJSON() []byte {
 
 // Run sends the current action to websocket code that will create a request.
 // Then the action will wait until all commands and expected events are completed.
-func (act *Action) Run() error {
-	Cache.Set(act)
-	ActionChan <- act.ToJSON()
+func (act *Action) Run(frame *Frame) error {
+	frame.Cache.Set(act)
+	frame.ActionChan <- act.ToJSON()
 	commandTimeout := act.CommandTimeout()
 	for {
 		select {
 		case <-commandTimeout:
 			// The current action's current command has timed out.
 			return fmt.Errorf("command timeout %s", act.ToJSON())
-		case <-CacheCompleteChan:
+		case <-frame.CacheCompleteChan:
 			// The current action is complete.
 			return nil
-		case commandTimeout = <-CommandChan:
+		case commandTimeout = <-frame.CommandChan:
 			// Set the current timeout to the next command's timeout.
 			log.Print("Next command timeout set.")
 		}
@@ -229,7 +229,7 @@ func (act *Action) SetEvent(name string, m Message) error {
 		act.Events[string(name)] = e
 
 		log.Printf(".EVT: %s %+v\n", name, m)
-		if LogLevel >= LogDetails {
+		if act.Frame.LogLevel >= LogDetails {
 			log.Printf("    : %+v\n", e)
 			log.Printf("    : %+v\n", e.Value)
 		}
@@ -260,7 +260,7 @@ func (act *Action) SetResult(m Message) error {
 	act.CommandIndex++
 
 	log.Printf(".STP COMPLETE: %+v\n", s)
-	if LogLevel >= LogDetails {
+	if act.Frame.LogLevel >= LogDetails {
 		log.Printf("             : %+v\n", s.Params)
 		log.Printf("             : %+v\n", s.Reply)
 	}
