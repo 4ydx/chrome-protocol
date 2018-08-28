@@ -9,7 +9,7 @@ import (
 )
 
 func TestNavigate(t *testing.T) {
-	browser := cdp.NewBrowser("/usr/bin/google-chrome", 9222)
+	browser := cdp.NewBrowser(BrowserPath, 9222)
 
 	frame := cdp.Start(9222, cdp.LogBasic)
 	defer func() {
@@ -35,7 +35,7 @@ func TestNavigate(t *testing.T) {
 }
 
 func TestScreenshot(t *testing.T) {
-	browser := cdp.NewBrowser("/usr/bin/google-chrome", 9222)
+	browser := cdp.NewBrowser(BrowserPath, 9222)
 
 	frame := cdp.Start(9222, cdp.LogBasic)
 	defer func() {
