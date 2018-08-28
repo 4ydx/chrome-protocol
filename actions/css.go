@@ -13,15 +13,15 @@ import (
 func GetComputedStyleForNode(frame *cdp.Frame, nodeID dom.NodeID, timeout time.Duration) (*css.GetComputedStyleForNodeReply, error) {
 	action := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: css.CommandCSSGetComputedStyleForNode, Params: &css.GetComputedStyleForNodeArgs{NodeID: nodeID}, Reply: &css.GetComputedStyleForNodeReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: css.CommandCSSGetComputedStyleForNode, Params: &css.GetComputedStyleForNodeArgs{NodeID: nodeID}, Reply: &css.GetComputedStyleForNodeReply{}, Timeout: timeout},
 		})
 	err := action.Run()
 	if err != nil {
 		log.Print(err)
 		return nil, err
 	}
-	return action.Steps[0].Reply.(*css.GetComputedStyleForNodeReply), nil
+	return action.Commands[0].Reply.(*css.GetComputedStyleForNodeReply), nil
 }
 
 // WaitForComputedStyle finds the first element on a page by id, css, or xpath and waits until the given css propery is set to the given css value.

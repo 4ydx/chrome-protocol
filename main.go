@@ -16,11 +16,11 @@ var (
 	// Typically AllComplete or the OsInterrupt channels will fire and the write loop will send a request to close the socket.
 	AllComplete chan struct{}
 
-	// CacheCompleteChan sends the signal that the cached action is completed (all steps and events).
+	// CacheCompleteChan sends the signal that the cached action is completed (all commands and events).
 	CacheCompleteChan chan struct{}
 
-	// StepChan sends the signal that a step has been completed and an Action can advance.
-	StepChan chan (<-chan time.Time)
+	// CommandChan sends the signal that a command has been completed and an Action can advance.
+	CommandChan chan (<-chan time.Time)
 
 	// ActionChan sends Actions to the websocket.
 	ActionChan chan []byte
@@ -84,11 +84,11 @@ func Start(port int, logLevel LogLevelValue) *Frame {
 
 	CacheCompleteChan = make(chan struct{})
 	ActionChan = make(chan []byte)
-	StepChan = make(chan (<-chan time.Time))
+	CommandChan = make(chan (<-chan time.Time))
 	LogLevel = logLevel
 
 	go Write(Conn, ActionChan, AllComplete)
-	go Read(Conn, StepChan, CacheCompleteChan, Cache)
+	go Read(Conn, CommandChan, CacheCompleteChan, Cache)
 
 	page := &Frame{
 		RWMutex: &sync.RWMutex{},

@@ -19,15 +19,15 @@ func EnableAll(frame *cdp.Frame, timeout time.Duration) error {
 	// Order is important.  Dom should come first.
 	err := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMEnable, Params: &dom.EnableArgs{}, Reply: &dom.EnableReply{}, Timeout: timeout},
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: css.CommandCSSEnable, Params: &css.EnableArgs{}, Reply: &css.EnableReply{}, Timeout: timeout},
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBEnable, Params: &indexeddb.EnableArgs{}, Reply: &indexeddb.EnableReply{}, Timeout: timeout},
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: inspector.CommandInspectorEnable, Params: &inspector.EnableArgs{}, Reply: &inspector.EnableReply{}, Timeout: timeout},
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: log.CommandLogEnable, Params: &log.EnableArgs{}, Reply: &log.EnableReply{}, Timeout: timeout},
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: network.CommandNetworkEnable, Params: &network.EnableArgs{}, Reply: &network.EnableReply{}, Timeout: timeout},
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: page.CommandPageEnable, Params: &page.EnableArgs{}, Reply: &page.EnableReply{}, Timeout: timeout},
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeEnable, Params: &runtime.EnableArgs{}, Reply: &runtime.EnableReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMEnable, Params: &dom.EnableArgs{}, Reply: &dom.EnableReply{}, Timeout: timeout},
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: css.CommandCSSEnable, Params: &css.EnableArgs{}, Reply: &css.EnableReply{}, Timeout: timeout},
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBEnable, Params: &indexeddb.EnableArgs{}, Reply: &indexeddb.EnableReply{}, Timeout: timeout},
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: inspector.CommandInspectorEnable, Params: &inspector.EnableArgs{}, Reply: &inspector.EnableReply{}, Timeout: timeout},
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: log.CommandLogEnable, Params: &log.EnableArgs{}, Reply: &log.EnableReply{}, Timeout: timeout},
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: network.CommandNetworkEnable, Params: &network.EnableArgs{}, Reply: &network.EnableReply{}, Timeout: timeout},
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: page.CommandPageEnable, Params: &page.EnableArgs{}, Reply: &page.EnableReply{}, Timeout: timeout},
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeEnable, Params: &runtime.EnableArgs{}, Reply: &runtime.EnableReply{}, Timeout: timeout},
 		}).Run()
 	if err != nil {
 		lg.Print(err)
@@ -39,8 +39,8 @@ func EnableAll(frame *cdp.Frame, timeout time.Duration) error {
 func EnableDom(frame *cdp.Frame, timeout time.Duration) error {
 	err := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMEnable, Params: &dom.EnableArgs{}, Reply: &dom.EnableReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMEnable, Params: &dom.EnableArgs{}, Reply: &dom.EnableReply{}, Timeout: timeout},
 		}).Run()
 	if err != nil {
 		lg.Print(err)
@@ -52,8 +52,8 @@ func EnableDom(frame *cdp.Frame, timeout time.Duration) error {
 func EnablePage(frame *cdp.Frame, timeout time.Duration) error {
 	err := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: page.CommandPageEnable, Params: &page.EnableArgs{}, Reply: &page.EnableReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: page.CommandPageEnable, Params: &page.EnableArgs{}, Reply: &page.EnableReply{}, Timeout: timeout},
 		}).Run()
 	if err != nil {
 		lg.Print(err)
@@ -65,8 +65,8 @@ func EnablePage(frame *cdp.Frame, timeout time.Duration) error {
 func EnableNetwork(frame *cdp.Frame, timeout time.Duration) error {
 	err := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: network.CommandNetworkEnable, Params: &network.EnableArgs{}, Reply: &network.EnableReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: network.CommandNetworkEnable, Params: &network.EnableArgs{}, Reply: &network.EnableReply{}, Timeout: timeout},
 		}).Run()
 	if err != nil {
 		lg.Print(err)
@@ -78,8 +78,8 @@ func EnableNetwork(frame *cdp.Frame, timeout time.Duration) error {
 func EnableRuntime(frame *cdp.Frame, timeout time.Duration) error {
 	err := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeEnable, Params: &runtime.EnableArgs{}, Reply: &runtime.EnableReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeEnable, Params: &runtime.EnableArgs{}, Reply: &runtime.EnableReply{}, Timeout: timeout},
 		}).Run()
 	if err != nil {
 		lg.Print(err)
@@ -91,8 +91,8 @@ func EnableRuntime(frame *cdp.Frame, timeout time.Duration) error {
 func EnableCSS(frame *cdp.Frame, timeout time.Duration) error {
 	err := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: css.CommandCSSEnable, Params: &css.EnableArgs{}, Reply: &css.EnableReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: css.CommandCSSEnable, Params: &css.EnableArgs{}, Reply: &css.EnableReply{}, Timeout: timeout},
 		}).Run()
 	if err != nil {
 		lg.Print(err)
@@ -104,8 +104,8 @@ func EnableCSS(frame *cdp.Frame, timeout time.Duration) error {
 func EnableIndexedDB(frame *cdp.Frame, timeout time.Duration) error {
 	err := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBEnable, Params: &indexeddb.EnableArgs{}, Reply: &indexeddb.EnableReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBEnable, Params: &indexeddb.EnableArgs{}, Reply: &indexeddb.EnableReply{}, Timeout: timeout},
 		}).Run()
 	if err != nil {
 		lg.Print(err)

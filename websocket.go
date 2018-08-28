@@ -52,7 +52,7 @@ func GetWebsocket(port int) *websocket.Conn {
 }
 
 // Read reads replies from the server over the websocket.
-func Read(c *websocket.Conn, stepComplete chan (<-chan time.Time), cacheCompleteChan chan<- struct{}, ac *ActionCache) {
+func Read(c *websocket.Conn, commandComplete chan (<-chan time.Time), cacheCompleteChan chan<- struct{}, ac *ActionCache) {
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
@@ -70,9 +70,9 @@ func Read(c *websocket.Conn, stepComplete chan (<-chan time.Time), cacheComplete
 		}
 		// log.Printf(".DEC: %+v\n", m)
 
-		// All messages with an ID matching a step are set here.
-		hasStep := false
-		if hasStep = ac.HasStepID(m.ID); hasStep {
+		// All messages with an ID matching a command are set here.
+		hasCommand := false
+		if hasCommand = ac.HasCommandID(m.ID); hasCommand {
 			err := ac.SetResult(m)
 			if err != nil {
 				// An unmarshal error means that the server sent an error message.  Retry.
@@ -90,18 +90,18 @@ func Read(c *websocket.Conn, stepComplete chan (<-chan time.Time), cacheComplete
 			}
 		}
 
-		// If matched a step or an event, then this message is fully processed.
-		if hasStep || hasEvent {
+		// If matched a command or an event, then this message is fully processed.
+		if hasCommand || hasEvent {
 			if ac.IsComplete() {
-				log.Printf("Action Completed %s %s", ac.GetStepMethod(), ac.GetFrameID())
+				log.Printf("Action Completed %s %s", ac.GetCommandMethod(), ac.GetFrameID())
 				ac.Clear()
 				cacheCompleteChan <- struct{}{}
-			} else if !ac.IsStepComplete() {
-				log.Printf("Action Next Step %s %s", ac.GetStepMethod(), ac.GetFrameID())
+			} else if !ac.IsCommandComplete() {
+				log.Printf("Action Next Command %s %s", ac.GetCommandMethod(), ac.GetFrameID())
 				ActionChan <- ac.ToJSON()
-				stepComplete <- ac.StepTimeout()
+				commandComplete <- ac.CommandTimeout()
 			} else {
-				log.Printf("Action Event Waiting %s %s", ac.GetStepMethod(), ac.GetFrameID())
+				log.Printf("Action Event Waiting %s %s", ac.GetCommandMethod(), ac.GetFrameID())
 			}
 			continue
 		}

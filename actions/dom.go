@@ -13,15 +13,15 @@ import (
 func GetEntireDocument(frame *cdp.Frame, timeout time.Duration) (*dom.GetFlattenedDocumentReply, error) {
 	a0 := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetFlattenedDocument, Params: &dom.GetFlattenedDocumentArgs{Depth: -1}, Reply: &dom.GetFlattenedDocumentReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetFlattenedDocument, Params: &dom.GetFlattenedDocumentArgs{Depth: -1}, Reply: &dom.GetFlattenedDocumentReply{}, Timeout: timeout},
 		})
 	err := a0.Run()
 	if err != nil {
 		log.Print(err)
 		return nil, err
 	}
-	return a0.Steps[0].Reply.(*dom.GetFlattenedDocumentReply), err
+	return a0.Commands[0].Reply.(*dom.GetFlattenedDocumentReply), err
 }
 
 // FindFirstElementNodeID gets the first element's nodeId using XPath, Css selector, or text matches with the find parameter.
@@ -65,15 +65,15 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 	// Make nodeId search request.
 	a0 := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMPerformSearch, Params: &dom.PerformSearchArgs{Query: find}, Reply: &dom.PerformSearchReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMPerformSearch, Params: &dom.PerformSearchArgs{Query: find}, Reply: &dom.PerformSearchReply{}, Timeout: timeout},
 		})
 	err = a0.Run()
 	if err != nil {
 		log.Print(err)
 		return found, err
 	}
-	ret := a0.Steps[0].Reply.(*dom.PerformSearchReply)
+	ret := a0.Commands[0].Reply.(*dom.PerformSearchReply)
 	if ret.SearchID == "" {
 		err := errors.New("unexpected empty search id")
 		log.Print(err)
@@ -93,8 +93,8 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 	}
 	a1 := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetSearchResults, Params: params, Reply: &dom.GetSearchResultsReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetSearchResults, Params: params, Reply: &dom.GetSearchResultsReply{}, Timeout: timeout},
 		})
 	err = a1.Run()
 	if err != nil {
@@ -103,7 +103,7 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 	}
 
 	// Find the matching nodes from the document
-	hits := a1.Steps[0].Reply.(*dom.GetSearchResultsReply)
+	hits := a1.Commands[0].Reply.(*dom.GetSearchResultsReply)
 	for _, child := range doc.Nodes {
 		for _, id := range hits.NodeIDs {
 			if id == child.NodeID {
@@ -123,8 +123,8 @@ func Focus(frame *cdp.Frame, find string, timeout time.Duration) error {
 	}
 	err = cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMFocus, Params: &dom.FocusArgs{NodeID: target}, Reply: &dom.FocusReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMFocus, Params: &dom.FocusArgs{NodeID: target}, Reply: &dom.FocusReply{}, Timeout: timeout},
 		}).Run()
 	if err != nil {
 		log.Print(err)
@@ -144,8 +144,8 @@ func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Durat
 	}
 	a0 := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetBoxModel, Params: &dom.GetBoxModelArgs{NodeID: target}, Reply: &dom.GetBoxModelReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetBoxModel, Params: &dom.GetBoxModelArgs{NodeID: target}, Reply: &dom.GetBoxModelReply{}, Timeout: timeout},
 		})
 	err = a0.Run()
 	if err != nil {
@@ -156,16 +156,16 @@ func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Durat
 	// Box is an array of quad vertices, x immediately followed by y for each point, points clock-wise.
 	// (0, 1), (2, 3) <- upper edge
 	// (4, 5), (6, 7) <- lower edge
-	box := a0.Steps[0].Reply.(*dom.GetBoxModelReply).Model.Content
+	box := a0.Commands[0].Reply.(*dom.GetBoxModelReply).Model.Content
 	xMid := (box[2]-box[0])/2 + box[0]
 	yMid := (box[5]-box[1])/2 + box[1]
 
 	// Mouse click.
 	err = cdp.NewAction(frame,
 		events,
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mousePressed"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mouseReleased"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mousePressed"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{X: xMid, Y: yMid, Button: "left", ClickCount: 1, Type: "mouseReleased"}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
 		}).Run()
 	if err != nil {
 		log.Print(err)

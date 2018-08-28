@@ -40,8 +40,8 @@ func Navigate(frame *cdp.Frame, url string, timeout time.Duration) ([]cdp.Event,
 	events := GetNavigationEvents()
 	action := cdp.NewAction(frame,
 		events,
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
 		})
 	if err := action.Run(); err != nil {
 		log.Print(err)
@@ -56,14 +56,14 @@ func Screenshot(frame *cdp.Frame, destination, format string, quality int, clip 
 	if clip != nil {
 		action = cdp.NewAction(frame,
 			[]cdp.Event{},
-			[]cdp.Step{
-				cdp.Step{ID: frame.RequestID.GetNext(), Method: page.CommandPageCaptureScreenshot, Params: &page.CaptureScreenshotArgs{Format: format, Clip: clip, Quality: quality}, Reply: &page.CaptureScreenshotReply{}, Timeout: timeout},
+			[]cdp.Command{
+				cdp.Command{ID: frame.RequestID.GetNext(), Method: page.CommandPageCaptureScreenshot, Params: &page.CaptureScreenshotArgs{Format: format, Clip: clip, Quality: quality}, Reply: &page.CaptureScreenshotReply{}, Timeout: timeout},
 			})
 	} else {
 		action = cdp.NewAction(frame,
 			[]cdp.Event{},
-			[]cdp.Step{
-				cdp.Step{ID: frame.RequestID.GetNext(), Method: page.CommandPageCaptureScreenshot, Params: &page.CaptureScreenshotArgs{Format: format, Quality: quality}, Reply: &page.CaptureScreenshotReply{}, Timeout: timeout},
+			[]cdp.Command{
+				cdp.Command{ID: frame.RequestID.GetNext(), Method: page.CommandPageCaptureScreenshot, Params: &page.CaptureScreenshotArgs{Format: format, Quality: quality}, Reply: &page.CaptureScreenshotReply{}, Timeout: timeout},
 			})
 	}
 	if err := action.Run(); err != nil {
@@ -72,7 +72,7 @@ func Screenshot(frame *cdp.Frame, destination, format string, quality int, clip 
 	}
 
 	// Convert to an image.
-	src := action.Steps[0].Reply.(*page.CaptureScreenshotReply).Data
+	src := action.Commands[0].Reply.(*page.CaptureScreenshotReply).Data
 	m, _, err := image.Decode(bytes.NewReader(src))
 	if err != nil {
 		log.Print(err)

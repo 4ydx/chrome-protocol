@@ -11,30 +11,30 @@ import (
 func RequestDatabaseNames(frame *cdp.Frame, securityOrigin string, timeout time.Duration) (*indexeddb.RequestDatabaseNamesReply, error) {
 	action := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBRequestDatabaseNames, Params: &indexeddb.RequestDatabaseNamesArgs{SecurityOrigin: securityOrigin}, Reply: &indexeddb.RequestDatabaseNamesReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBRequestDatabaseNames, Params: &indexeddb.RequestDatabaseNamesArgs{SecurityOrigin: securityOrigin}, Reply: &indexeddb.RequestDatabaseNamesReply{}, Timeout: timeout},
 		})
 	err := action.Run()
 	if err != nil {
 		log.Print(err)
 		return nil, err
 	}
-	return action.Steps[0].Reply.(*indexeddb.RequestDatabaseNamesReply), nil
+	return action.Commands[0].Reply.(*indexeddb.RequestDatabaseNamesReply), nil
 }
 
 // RequestDatabase returns the database with object stores.
 func RequestDatabase(frame *cdp.Frame, securityOrigin, databaseName string, timeout time.Duration) (*indexeddb.RequestDatabaseReply, error) {
 	action := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBRequestDatabase, Params: &indexeddb.RequestDatabaseArgs{SecurityOrigin: securityOrigin, DatabaseName: databaseName}, Reply: &indexeddb.RequestDatabaseReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBRequestDatabase, Params: &indexeddb.RequestDatabaseArgs{SecurityOrigin: securityOrigin, DatabaseName: databaseName}, Reply: &indexeddb.RequestDatabaseReply{}, Timeout: timeout},
 		})
 	err := action.Run()
 	if err != nil {
 		log.Print(err)
 		return nil, err
 	}
-	return action.Steps[0].Reply.(*indexeddb.RequestDatabaseReply), nil
+	return action.Commands[0].Reply.(*indexeddb.RequestDatabaseReply), nil
 }
 
 // RequestData returns the requested data.
@@ -50,13 +50,13 @@ func RequestData(frame *cdp.Frame, securityOrigin, databaseName, objectStoreName
 	}
 	action := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBRequestData, Params: args, Reply: &indexeddb.RequestDataReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBRequestData, Params: args, Reply: &indexeddb.RequestDataReply{}, Timeout: timeout},
 		})
 	err := action.Run()
 	if err != nil {
 		log.Print(err)
 		return nil, err
 	}
-	return action.Steps[0].Reply.(*indexeddb.RequestDataReply), nil
+	return action.Commands[0].Reply.(*indexeddb.RequestDataReply), nil
 }

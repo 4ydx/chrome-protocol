@@ -12,15 +12,15 @@ import (
 func Evaluate(frame *cdp.Frame, expression string, timeout time.Duration) (*runtime.EvaluateReply, error) {
 	action := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeEvaluate, Params: &runtime.EvaluateArgs{Expression: expression, Silent: false}, Reply: &runtime.EvaluateReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeEvaluate, Params: &runtime.EvaluateArgs{Expression: expression, Silent: false}, Reply: &runtime.EvaluateReply{}, Timeout: timeout},
 		})
 	err := action.Run()
 	if err != nil {
 		log.Print(err)
 		return nil, err
 	}
-	return action.Steps[0].Reply.(*runtime.EvaluateReply), nil
+	return action.Commands[0].Reply.(*runtime.EvaluateReply), nil
 }
 
 // GetProperties runs the properties of a given object.
@@ -32,13 +32,13 @@ func GetProperties(frame *cdp.Frame, objectID shared.RemoteObjectID, ownProperti
 	}
 	action := cdp.NewAction(frame,
 		[]cdp.Event{},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeGetProperties, Params: args, Reply: &runtime.GetPropertiesReply{}, Timeout: timeout},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeGetProperties, Params: args, Reply: &runtime.GetPropertiesReply{}, Timeout: timeout},
 		})
 	err := action.Run()
 	if err != nil {
 		log.Print(err)
 		return nil, err
 	}
-	return action.Steps[0].Reply.(*runtime.GetPropertiesReply), nil
+	return action.Commands[0].Reply.(*runtime.GetPropertiesReply), nil
 }

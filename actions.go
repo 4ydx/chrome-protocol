@@ -12,8 +12,8 @@ import (
 // The loop's select is triggered and the action will be checked for completion.
 var Wait = time.Millisecond * 50
 
-// StepReply specifies required methods for handling the json encoded replies received from the server.
-type StepReply interface {
+// CommandReply specifies required methods for handling the json encoded replies received from the server.
+type CommandReply interface {
 	json.Unmarshaler
 	MatchFrameID(frameID string, m []byte) bool
 	GetFrameID() string
@@ -22,40 +22,40 @@ type StepReply interface {
 // Event holds the value returned by the server based on a matching MethodType name.
 type Event struct {
 	Name       string
-	Value      StepReply
+	Value      CommandReply
 	IsRequired bool
 	IsFound    bool
 }
 
-// Step represents a single json request sent to the server over the websocket.
-type Step struct {
+// Command represents a single json request sent to the server over the websocket.
+type Command struct {
 	// Values required to make a chrome devtools protocol request.
 	ID     int64          `json:"id"`
 	Method string         `json:"method,omitempty"`
 	Params json.Marshaler `json:"params,omitempty"`
 
-	Reply           StepReply     `json:"-"` // The struct that will be filled when a matching step Id is found in a reply over the chrome websocket.
-	Timeout         time.Duration `json:"-"` // How long until the current step experiences a timeout, which will halt the entire process.
-	PreviousReturns func()        `json:"-"` // Method defined by the user to take the previous step's Returns and apply them to the current step's Params.
+	Reply           CommandReply  `json:"-"` // The struct that will be filled when a matching command Id is found in a reply over the chrome websocket.
+	Timeout         time.Duration `json:"-"` // How long until the current command experiences a timeout, which will halt the entire process.
+	PreviousReturns func()        `json:"-"` // Method defined by the user to take the previous command's Returns and apply them to the current command's Params.
 }
 
-// Action represents a collection of json requests (steps) and any events that those requests might trigger that need to be tracked.
+// Action represents a collection of json requests (commands) and any events that those requests might trigger that need to be tracked.
 type Action struct {
 	*sync.RWMutex
-	Steps     []Step
-	StepIndex int
-	Events    map[string]Event
-	Start     *time.Time
-	Frame     *Frame
+	Commands     []Command
+	CommandIndex int
+	Events       map[string]Event
+	Start        *time.Time
+	Frame        *Frame
 }
 
-// NewAction returns a newly created action with any events that will be triggered by steps the action will take.
-func NewAction(page *Frame, events []Event, steps []Step) *Action {
+// NewAction returns a newly created action with any events that will be triggered by commands the action will take.
+func NewAction(page *Frame, events []Event, commands []Command) *Action {
 	act := &Action{
-		RWMutex: &sync.RWMutex{},
-		Events:  make(map[string]Event),
-		Steps:   steps,
-		Frame:   page,
+		RWMutex:  &sync.RWMutex{},
+		Events:   make(map[string]Event),
+		Commands: commands,
+		Frame:    page,
 	}
 	for _, e := range events {
 		act.Events[e.Name] = e
@@ -63,15 +63,15 @@ func NewAction(page *Frame, events []Event, steps []Step) *Action {
 	return act
 }
 
-// IsStepComplete indicates that all steps are complete.
-func (act *Action) IsStepComplete() bool {
+// IsCommandComplete indicates that all commands are complete.
+func (act *Action) IsCommandComplete() bool {
 	act.RLock()
 	defer act.RUnlock()
 
-	return act.StepIndex == len(act.Steps)
+	return act.CommandIndex == len(act.Commands)
 }
 
-// IsComplete indicates that all steps and events are complete.
+// IsComplete indicates that all commands and events are complete.
 func (act *Action) IsComplete() bool {
 	act.RLock()
 	defer act.RUnlock()
@@ -82,19 +82,19 @@ func (act *Action) IsComplete() bool {
 			complete = false
 		}
 	}
-	return act.StepIndex == len(act.Steps) && complete
+	return act.CommandIndex == len(act.Commands) && complete
 }
 
-// StepTimeout once timed out will trigger an error and stop the automation.
-func (act *Action) StepTimeout() <-chan time.Time {
+// CommandTimeout once timed out will trigger an error and stop the automation.
+func (act *Action) CommandTimeout() <-chan time.Time {
 	act.RLock()
 	defer act.RUnlock()
 
-	return time.After(act.Steps[act.StepIndex].Timeout)
+	return time.After(act.Commands[act.CommandIndex].Timeout)
 }
 
-// ToJSON encodes the current step.  This is the chrome devtools protocol request.
-// In the event that all steps are complete, continue to display the last step for debugging convenience.
+// ToJSON encodes the current command.  This is the chrome devtools protocol request.
+// In the event that all commands are complete, continue to display the last command for debugging convenience.
 func (act *Action) ToJSON() []byte {
 	act.RLock()
 	defer act.RUnlock()
@@ -103,11 +103,11 @@ func (act *Action) ToJSON() []byte {
 		t := time.Now()
 		act.Start = &t
 	}
-	index := act.StepIndex
-	if act.StepIndex == len(act.Steps) {
+	index := act.CommandIndex
+	if act.CommandIndex == len(act.Commands) {
 		index--
 	}
-	s := act.Steps[index]
+	s := act.Commands[index]
 
 	j, err := json.Marshal(s)
 	if err != nil {
@@ -117,22 +117,22 @@ func (act *Action) ToJSON() []byte {
 }
 
 // Run sends the current action to websocket code that will create a request.
-// Then the action will wait until all steps and expected events are completed.
+// Then the action will wait until all commands and expected events are completed.
 func (act *Action) Run() error {
 	Cache.Set(act)
 	ActionChan <- act.ToJSON()
-	stepTimeout := act.StepTimeout()
+	commandTimeout := act.CommandTimeout()
 	for {
 		select {
-		case <-stepTimeout:
-			// The current action's current step has timed out.
-			return fmt.Errorf("step timeout %s", act.ToJSON())
+		case <-commandTimeout:
+			// The current action's current command has timed out.
+			return fmt.Errorf("command timeout %s", act.ToJSON())
 		case <-CacheCompleteChan:
 			// The current action is complete.
 			return nil
-		case stepTimeout = <-StepChan:
-			// Set the current timeout to the next step's timeout.
-			log.Print("Next step timeout set.")
+		case commandTimeout = <-CommandChan:
+			// Set the current timeout to the next command's timeout.
+			log.Print("Next command timeout set.")
 		}
 	}
 }
@@ -143,21 +143,21 @@ func (act *Action) Log() {
 	defer act.RUnlock()
 
 	log.Printf("Action %+v\n", act)
-	for i, step := range act.Steps {
-		log.Printf("%d Step %d Params %+v", i, step.ID, step.Params)
-		log.Printf("%d Step %d Return %+v", i, step.ID, step.Reply)
+	for i, command := range act.Commands {
+		log.Printf("%d Command %d Params %+v", i, command.ID, command.Params)
+		log.Printf("%d Command %d Return %+v", i, command.ID, command.Reply)
 	}
 }
 
-// HasStepID determines if an id matches the current action's step's unique id.
-func (act *Action) HasStepID(id int64) bool {
+// HasCommandID determines if an id matches the current action's command's unique id.
+func (act *Action) HasCommandID(id int64) bool {
 	act.RLock()
 	defer act.RUnlock()
 
-	if act.StepIndex == len(act.Steps) {
+	if act.CommandIndex == len(act.Commands) {
 		return false
 	}
-	return act.Steps[act.StepIndex].ID == id
+	return act.Commands[act.CommandIndex].ID == id
 }
 
 // HasEvent returns true when the action has an event with the given MethodType.
@@ -169,15 +169,15 @@ func (act *Action) HasEvent(name string) bool {
 	return ok
 }
 
-// GetStepMethod returns the method of the step that is currently active or the very last method.
-func (act *Action) GetStepMethod() string {
+// GetCommandMethod returns the method of the command that is currently active or the very last method.
+func (act *Action) GetCommandMethod() string {
 	act.RLock()
 	defer act.RUnlock()
 
-	if act.StepIndex == len(act.Steps) {
-		return act.Steps[act.StepIndex-1].Method
+	if act.CommandIndex == len(act.Commands) {
+		return act.Commands[act.CommandIndex-1].Method
 	}
-	return act.Steps[act.StepIndex].Method
+	return act.Commands[act.CommandIndex].Method
 }
 
 // GetFrameID returns the frameID of the current frame.
@@ -237,12 +237,12 @@ func (act *Action) SetEvent(name string, m Message) error {
 	return nil
 }
 
-// SetResult applies the message returns to the current step and advances the step.
+// SetResult applies the message returns to the current command and advances the command.
 func (act *Action) SetResult(m Message) error {
 	act.Lock()
 	defer act.Unlock()
 
-	s := act.Steps[act.StepIndex]
+	s := act.Commands[act.CommandIndex]
 	frameID := act.Frame.GetFrameID()
 	if frameID == "" {
 		err := s.Reply.UnmarshalJSON(m.Result)
@@ -257,7 +257,7 @@ func (act *Action) SetResult(m Message) error {
 			return nil
 		}
 	}
-	act.StepIndex++
+	act.CommandIndex++
 
 	log.Printf(".STP COMPLETE: %+v\n", s)
 	if LogLevel >= LogDetails {

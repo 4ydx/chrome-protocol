@@ -22,15 +22,15 @@ func (ac *ActionCache) Set(a *Action) {
 	ac.a = a
 }
 
-// HasStepID determines if an id matches the current action's step's unique id.
-func (ac *ActionCache) HasStepID(id int64) bool {
+// HasCommandID determines if an id matches the current action's command's unique id.
+func (ac *ActionCache) HasCommandID(id int64) bool {
 	ac.RLock()
 	defer ac.RUnlock()
 
 	if ac.a == nil {
 		return false
 	}
-	return ac.a.HasStepID(id)
+	return ac.a.HasCommandID(id)
 }
 
 // HasEvent returns true when the action has an event with the given MethodType.
@@ -44,15 +44,15 @@ func (ac *ActionCache) HasEvent(name string) bool {
 	return ac.a.HasEvent(name)
 }
 
-// GetStepMethod returns the method of the step that is currently active.
-func (ac *ActionCache) GetStepMethod() string {
+// GetCommandMethod returns the method of the command that is currently active.
+func (ac *ActionCache) GetCommandMethod() string {
 	ac.RLock()
 	defer ac.RUnlock()
 
 	if ac.a == nil {
 		return ""
 	}
-	return ac.a.GetStepMethod()
+	return ac.a.GetCommandMethod()
 }
 
 // GetFrameID returns the frameID of the current frame.
@@ -77,7 +77,7 @@ func (ac *ActionCache) SetEvent(name string, m Message) error {
 	return ac.a.SetEvent(name, m)
 }
 
-// SetResult applies the message returns to the current step and advances the step.
+// SetResult applies the message returns to the current command and advances the command.
 func (ac *ActionCache) SetResult(m Message) error {
 	ac.Lock()
 	defer ac.Unlock()
@@ -88,7 +88,7 @@ func (ac *ActionCache) SetResult(m Message) error {
 	return ac.a.SetResult(m)
 }
 
-// IsComplete indicates whether or not all events and steps are completed.
+// IsComplete indicates whether or not all events and commands are completed.
 func (ac *ActionCache) IsComplete() bool {
 	ac.RLock()
 	defer ac.RUnlock()
@@ -102,32 +102,32 @@ func (ac *ActionCache) IsComplete() bool {
 	return false
 }
 
-// IsStepComplete indicates whether or not the step portion of an action is completed.
-func (ac *ActionCache) IsStepComplete() bool {
+// IsCommandComplete indicates whether or not the command portion of an action is completed.
+func (ac *ActionCache) IsCommandComplete() bool {
 	ac.RLock()
 	defer ac.RUnlock()
 
 	if ac.a == nil {
 		return true
 	}
-	if ac.a.IsStepComplete() {
+	if ac.a.IsCommandComplete() {
 		return true
 	}
 	return false
 }
 
-// StepTimeout returns the timeout channel for the current step.
-func (ac *ActionCache) StepTimeout() <-chan time.Time {
+// CommandTimeout returns the timeout channel for the current command.
+func (ac *ActionCache) CommandTimeout() <-chan time.Time {
 	ac.RLock()
 	defer ac.RUnlock()
 
 	if ac.a == nil {
 		return time.After(0)
 	}
-	return ac.a.StepTimeout()
+	return ac.a.CommandTimeout()
 }
 
-// ToJSON returns the json representation of the current step.
+// ToJSON returns the json representation of the current command.
 func (ac *ActionCache) ToJSON() []byte {
 	ac.RLock()
 	defer ac.RUnlock()
