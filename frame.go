@@ -66,7 +66,6 @@ func (f *Frame) Stop(closeBrowser bool) {
 		f.Conn.Close()
 		if closeBrowser {
 			f.Browser.Stop()
-			f.Browser.LogFile.Close()
 		}
 	}()
 	f.AllComplete <- struct{}{}

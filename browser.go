@@ -113,4 +113,5 @@ func (b *Browser) Stop() {
 	if b.TempDir != "" {
 		os.RemoveAll(b.TempDir)
 	}
+	b.LogFile.Close()
 }

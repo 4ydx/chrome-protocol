@@ -42,11 +42,12 @@ import (
 )
 
 func main() {
-	browser := cdp.NewBrowser("/usr/bin/google-chrome", 9222)
+	browser := cdp.NewBrowser("/usr/bin/google-chrome", 9222, "browser.log")
 
-	frame := cdp.Start(9222, cdp.LOG_BASIC)
+	frame := cdp.Start(browser, cdp.LogBasic)
 	defer func() {
-		cdp.Stop()
+		// passing false prevents the browser from stopping immediately
+		frame.Stop(false)
 
 		// Give yourself time to view the final page in the browser.
 		time.Sleep(3 * time.Second)
