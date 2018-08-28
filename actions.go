@@ -130,9 +130,6 @@ func (act *Action) Run() error {
 		case <-CacheCompleteChan:
 			// The current action is complete.
 			return nil
-		case <-StepError:
-			// Perform a retry on the current step.
-			ActionChan <- act.ToJSON()
 		case stepTimeout = <-StepChan:
 			// Set the current timeout to the next step's timeout.
 			log.Print("Next step timeout set.")

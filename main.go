@@ -22,9 +22,6 @@ var (
 	// StepChan sends the signal that a step has been completed and an Action can advance.
 	StepChan chan (<-chan time.Time)
 
-	// StepError performs a retry on the current step when the server returns an error regarding that step.
-	StepError chan struct{}
-
 	// ActionChan sends Actions to the websocket.
 	ActionChan chan []byte
 
@@ -88,11 +85,10 @@ func Start(port int, logLevel LogLevelValue) *Frame {
 	CacheCompleteChan = make(chan struct{})
 	ActionChan = make(chan []byte)
 	StepChan = make(chan (<-chan time.Time))
-	StepError = make(chan struct{})
 	LogLevel = logLevel
 
 	go Write(Conn, ActionChan, AllComplete)
-	go Read(Conn, StepChan, StepError, CacheCompleteChan, Cache)
+	go Read(Conn, StepChan, CacheCompleteChan, Cache)
 
 	page := &Frame{
 		RWMutex: &sync.RWMutex{},

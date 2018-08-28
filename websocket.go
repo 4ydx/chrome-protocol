@@ -52,7 +52,7 @@ func GetWebsocket(port int) *websocket.Conn {
 }
 
 // Read reads replies from the server over the websocket.
-func Read(c *websocket.Conn, stepComplete chan (<-chan time.Time), stepError chan<- struct{}, cacheCompleteChan chan<- struct{}, ac *ActionCache) {
+func Read(c *websocket.Conn, stepComplete chan (<-chan time.Time), cacheCompleteChan chan<- struct{}, ac *ActionCache) {
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
@@ -75,7 +75,8 @@ func Read(c *websocket.Conn, stepComplete chan (<-chan time.Time), stepError cha
 		if hasStep = ac.HasStepID(m.ID); hasStep {
 			err := ac.SetResult(m)
 			if err != nil {
-				stepError <- struct{}{}
+				// An unmarshal error means that the server sent an error message.  Retry.
+				ActionChan <- ac.ToJSON()
 				continue
 			}
 		}
