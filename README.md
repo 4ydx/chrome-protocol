@@ -9,6 +9,10 @@ supports the protocol.
 
 This is still a work in progress.
 
+- Very fast.
+- No hidden errors.
+- Simple approach makes it easy to understand what is happening under the hood.
+
 ## Examples
 
 Look under [github.com/4ydx/chrome-protocol/actions](https://github.com/4ydx/chrome-protocol/tree/master/actions).  The testing files are the examples.  There is one example in the example folder.
@@ -65,27 +69,33 @@ func main() {
 
 ## Creating your own Actions
 
-Actions are the requests that you make to the browser in order to automate different tasks.  For instance, asking
-the browser to navigate to a particular url.  When you construct an action, you need to fill in at least one "step" that consists
-of the params struct, the reply struct, and the method name of the API call you are making.  Finally, it is possible to associate events
-that the server will send to the client with your action.  By specifying events you can be sure that a given action has actually run its
+Actions encapsulate everything you need in order to interact with a browser. An action contains commands and events.
+
+When you construct an action, you need to fill in at least one command that consists of the struct representing the parameters that will be sent with the command,
+the struct that represents the reply to that command from the server, and the method name of the API call you are making.
+
+It is possible to associate events that the server will send to the client with your action.  By specifying events you can be sure that a given action has actually run its
 course and the browser state is where you would expect it to be.
 
-API methods, events, and types are all defined in the [Devtools Reference](https://chromedevtools.github.io/devtools-protocol/tot).
+API methods, command parameters, command responses, possible events, and types are all defined in the [Devtools Reference](https://chromedevtools.github.io/devtools-protocol/tot).
 
-Possible Navigation Method.  This watches for the FrameStoppedLoadingReply event which helps to ensure that navigation is fully completed.
+This is a possible Navigation action that watches for the FrameStoppedLoadingReply event which helps to ensure that navigation to a url is fully completed.
 
 ```
-func Navigate(frame *cdp.Frame, url string, timeout time.Duration) error {
-	return cdp.NewAction(frame,
-		[]cdp.Event{
-			cdp.Event{Name: page.EventPageFrameNavigated, Value: &page.FrameNavigatedReply{}, IsRequired: true},
-			cdp.Event{Name: page.EventPageFrameStartedLoading, Value: &page.FrameStartedLoadingReply{}, IsRequired: true},
-			cdp.Event{Name: page.EventPageFrameStoppedLoading, Value: &page.FrameStoppedLoadingReply{}, IsRequired: true},
-		},
-		[]cdp.Step{
-			cdp.Step{ID: frame.RequestID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
-		}).Run()
+// Navigate sends the browser to the given URL
+func Navigate(frame *cdp.Frame, url string, timeout time.Duration) ([]cdp.Event, error) {
+	events := GetNavigationEvents()
+	action := cdp.NewAction(
+		frame,
+		events,
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
+		})
+	if err := action.Run(); err != nil {
+		log.Print(err)
+		return events, err
+	}
+	return events, nil
 }
 ```
 
