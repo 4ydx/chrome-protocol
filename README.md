@@ -86,13 +86,12 @@ This is a possible Navigation action that watches for the FrameStoppedLoadingRep
 // Navigate sends the browser to the given URL
 func Navigate(frame *cdp.Frame, url string, timeout time.Duration) ([]cdp.Event, error) {
 	events := GetNavigationEvents()
-	action := cdp.NewAction(
-		frame,
+	action := cdp.NewAction(frame,
 		events,
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
 		})
-	if err := action.Run(); err != nil {
+	if err := action.Run(frame); err != nil {
 		log.Print(err)
 		return events, err
 	}
