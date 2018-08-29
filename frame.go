@@ -44,6 +44,20 @@ type Frame struct {
 	LogLevel LogLevelValue
 }
 
+// SetDOM allows for setting the Frame DOM value safely.
+func (f *Frame) SetDOM(dom *dom.GetFlattenedDocumentReply) {
+	f.Lock()
+	defer f.Unlock()
+	f.DOM = dom
+}
+
+// GetDOM allows for getting the Frame DOM value safely.
+func (f *Frame) GetDOM() *dom.GetFlattenedDocumentReply {
+	f.RLock()
+	defer f.RUnlock()
+	return f.DOM
+}
+
 // GetFrameID returns the current frameID.
 func (f *Frame) GetFrameID() string {
 	f.RLock()

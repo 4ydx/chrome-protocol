@@ -11,6 +11,11 @@ import (
 
 // GetEntireDocument retrieves the root document and all children for the entire page.
 func GetEntireDocument(frame *cdp.Frame, timeout time.Duration) (*dom.GetFlattenedDocumentReply, error) {
+	frameDOM := frame.GetDOM()
+	if frameDOM != nil && len(frameDOM.Nodes) > 0 {
+		log.Print("Using cached Frame DOM.")
+		return frameDOM, nil
+	}
 	a0 := cdp.NewAction(frame,
 		[]cdp.Event{},
 		[]cdp.Command{
@@ -21,35 +26,9 @@ func GetEntireDocument(frame *cdp.Frame, timeout time.Duration) (*dom.GetFlatten
 		log.Print(err)
 		return nil, err
 	}
-	return a0.Commands[0].Reply.(*dom.GetFlattenedDocumentReply), err
-}
+	frame.SetDOM(a0.Commands[0].Reply.(*dom.GetFlattenedDocumentReply))
 
-// FindFirstElementNodeID gets the first element's nodeId using XPath, Css selector, or text matches with the find parameter.
-func FindFirstElementNodeID(frame *cdp.Frame, find string, timeout time.Duration) (dom.NodeID, error) {
-	nodes, err := FindAll(frame, find, timeout)
-	if err != nil {
-		log.Print(err)
-		return 0, err
-	}
-	if len(nodes) == 0 {
-		err := errors.New("no element found")
-		log.Print(err)
-		return 0, err
-	}
-	target := dom.NodeID(0)
-	for _, child := range nodes {
-		if child.NodeType == 1 {
-			// Is node of type 'element'.
-			target = child.NodeID
-			break
-		}
-	}
-	if target == 0 {
-		err := errors.New("no element (NodeType 1) found within matching nodes")
-		log.Print(err)
-		return 0, err
-	}
-	return target, nil
+	return a0.Commands[0].Reply.(*dom.GetFlattenedDocumentReply), err
 }
 
 // FindAll finds all nodes using XPath, CSS selector, or text.
@@ -112,6 +91,34 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 		}
 	}
 	return found, nil
+}
+
+// FindFirstElementNodeID gets the first element's nodeId using XPath, Css selector, or text matches with the find parameter.
+func FindFirstElementNodeID(frame *cdp.Frame, find string, timeout time.Duration) (dom.NodeID, error) {
+	nodes, err := FindAll(frame, find, timeout)
+	if err != nil {
+		log.Print(err)
+		return 0, err
+	}
+	if len(nodes) == 0 {
+		err := errors.New("no element found")
+		log.Print(err)
+		return 0, err
+	}
+	target := dom.NodeID(0)
+	for _, child := range nodes {
+		if child.NodeType == 1 {
+			// Is node of type 'element'.
+			target = child.NodeID
+			break
+		}
+	}
+	if target == 0 {
+		err := errors.New("no element (NodeType 1) found within matching nodes")
+		log.Print(err)
+		return 0, err
+	}
+	return target, nil
 }
 
 // Focus on the first element node that matches the find parameter.

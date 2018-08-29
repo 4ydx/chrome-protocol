@@ -3,6 +3,7 @@ package cdp
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/4ydx/cdp/protocol/dom"
 	"github.com/4ydx/cdp/protocol/lib"
 	"github.com/gorilla/websocket"
 	"io/ioutil"
@@ -105,6 +106,11 @@ func Read(frame *Frame) {
 				log.Printf("Action Event Waiting %s %s", frame.Cache.GetCommandMethod(), frame.Cache.GetFrameID())
 			}
 			continue
+		}
+
+		// Document update events must clear the frame DOM cache.
+		if m.Method == dom.EventDOMDocumentUpdated {
+			frame.SetDOM(nil)
 		}
 
 		// Generic unmarshaler for all other Events.

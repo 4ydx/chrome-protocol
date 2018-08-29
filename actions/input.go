@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// GetWindowsVirtualKeyCode returns the known javascript value for a given modifier key.
+// The meta/command modifier is not currently supported as it appear to vary across implementations.
 func GetWindowsVirtualKeyCode(modifiers int) int {
 	windowsVirtualKeyCode := 0
 	switch modifiers {
