@@ -28,7 +28,10 @@ func JSON(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	w.Header().Add("Content-type", "application/json")
-	w.Write(b)
+	_, err = w.Write(b)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func Echo(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +40,12 @@ func Echo(w http.ResponseWriter, r *http.Request) {
 		log.Print("upgrade:", err)
 		return
 	}
-	defer c.Close()
+	defer func() {
+		err := c.Close()
+		if err != nil {
+			log.Print("close:", err)
+		}
+	}()
 	for {
 		mt, message, err := c.ReadMessage()
 		if err != nil {

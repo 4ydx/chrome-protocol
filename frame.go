@@ -45,25 +45,28 @@ type Frame struct {
 }
 
 // GetFrameID returns the current frameID.
-func (p *Frame) GetFrameID() string {
-	p.RLock()
-	defer p.RUnlock()
+func (f *Frame) GetFrameID() string {
+	f.RLock()
+	defer f.RUnlock()
 
-	return p.FrameID
+	return f.FrameID
 }
 
 // SetFrameID sets the current frameID.
-func (p *Frame) SetFrameID(frameID string) {
-	p.Lock()
-	defer p.Unlock()
+func (f *Frame) SetFrameID(frameID string) {
+	f.Lock()
+	defer f.Unlock()
 
-	p.FrameID = frameID
+	f.FrameID = frameID
 }
 
 // Stop closes used resources.
 func (f *Frame) Stop(closeBrowser bool) {
 	defer func() {
-		f.Conn.Close()
+		err := f.Conn.Close()
+		if err != nil {
+			panic(err)
+		}
 		if closeBrowser {
 			f.Browser.Stop()
 		}

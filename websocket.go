@@ -18,7 +18,12 @@ func GetWebsocket(port int) *websocket.Conn {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer r.Body.Close()
+	defer func() {
+		err := r.Body.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {

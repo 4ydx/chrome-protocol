@@ -51,7 +51,7 @@ func Navigate(frame *cdp.Frame, url string, timeout time.Duration) ([]cdp.Event,
 }
 
 // Screenshot captures a screenshot and saves it to the given destination.
-func Screenshot(frame *cdp.Frame, destination, format string, quality int, clip *page.Viewport, timeout time.Duration) error {
+func Screenshot(frame *cdp.Frame, destination, format string, quality int, clip *page.Viewport, timeout time.Duration) (err error) {
 	var action *cdp.Action
 	if clip != nil {
 		action = cdp.NewAction(frame,
@@ -66,7 +66,7 @@ func Screenshot(frame *cdp.Frame, destination, format string, quality int, clip 
 				cdp.Command{ID: frame.RequestID.GetNext(), Method: page.CommandPageCaptureScreenshot, Params: &page.CaptureScreenshotArgs{Format: format, Quality: quality}, Reply: &page.CaptureScreenshotReply{}, Timeout: timeout},
 			})
 	}
-	if err := action.Run(); err != nil {
+	if err = action.Run(); err != nil {
 		log.Print(err)
 		return err
 	}
@@ -88,12 +88,23 @@ func Screenshot(frame *cdp.Frame, destination, format string, quality int, clip 
 		log.Print(err)
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		e := f.Close()
+		if err == nil && e != nil {
+			err = e
+		}
+	}()
 
 	if format == "png" {
-		png.Encode(f, m)
+		err = png.Encode(f, m)
+		if err != nil {
+			return err
+		}
 	} else {
-		jpeg.Encode(f, m, nil)
+		err = jpeg.Encode(f, m, nil)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
