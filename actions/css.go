@@ -43,13 +43,13 @@ func WaitForComputedStyle(frame *cdp.Frame, find, cssPropery, cssValue string, t
 			log.Print(err)
 			return err
 		}
-		visible := true
+		match := false
 		for _, s := range style.ComputedStyle {
 			if s.Name == cssPropery && s.Value == cssValue {
-				visible = false
+				match = true
 			}
 		}
-		if !visible {
+		if match {
 			break
 		}
 	}
