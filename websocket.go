@@ -69,20 +69,17 @@ func Read(frame *Frame) {
 		}
 		// log.Printf(".DEC: %+v\n", m)
 
-		// All messages with an ID matching a command are set here.
-		hasCommand := false
+		hasCommand, hasEvent := false, false
 		if hasCommand = frame.Cache.HasCommandID(m.ID); hasCommand {
+			// All messages with an ID matching a command are set here.
 			err := frame.Cache.SetResult(m)
 			if err != nil {
 				// An unmarshal error means that the server sent an error message.  Retry.
 				frame.ActionChan <- frame.Cache.ToJSON()
 				continue
 			}
-		}
-
-		// Check and then set Events related to the current Action.
-		hasEvent := false
-		if hasEvent = frame.Cache.HasEvent(m.Method); hasEvent {
+		} else if hasEvent = frame.Cache.HasEvent(m.Method); hasEvent {
+			// Check and then set Events related to the current Action.
 			err = frame.Cache.SetEvent(m.Method, m)
 			if err != nil {
 				log.Fatal(err)

@@ -29,7 +29,8 @@ func NewBrowser(path string, port int, logfile string, args ...string) *Browser 
 	if err != nil {
 		panic(err)
 	}
-	log.SetFlags(log.Lshortfile | log.LstdFlags | log.Lmicroseconds)
+	log.SetFlags(log.Llongfile | log.LstdFlags | log.Lmicroseconds)
+	//log.SetFlags(log.Lshortfile | log.LstdFlags | log.Lmicroseconds)
 	//log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 	log.SetOutput(b.LogFile)
 
