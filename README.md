@@ -91,7 +91,7 @@ func Navigate(frame *cdp.Frame, url string, timeout time.Duration) ([]cdp.Event,
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
 		})
-	if err := action.Run(frame); err != nil {
+	if err := action.Run(); err != nil {
 		log.Print(err)
 		return events, err
 	}

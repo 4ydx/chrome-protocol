@@ -36,7 +36,7 @@ func Fill(frame *cdp.Frame, find, fill string, timeout time.Duration) error {
 			[]cdp.Event{},
 			[]cdp.Command{
 				cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchKeyEvent, Params: &input.DispatchKeyEventArgs{Type: "char", Text: string(key)}, Reply: &input.DispatchKeyEventReply{}, Timeout: timeout},
-			}).Run(frame)
+			}).Run()
 		if err != nil {
 			log.Print(err)
 			return err
@@ -56,7 +56,7 @@ func KeyDown(frame *cdp.Frame, modifiers int, timeout time.Duration) error {
 				Type:      "keyDown",
 				WindowsVirtualKeyCode: windowsVirtualKeyCode,
 			}, Reply: &input.DispatchKeyEventReply{}, Timeout: timeout},
-		}).Run(frame)
+		}).Run()
 	if err != nil {
 		log.Print(err)
 		return err

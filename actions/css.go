@@ -16,7 +16,7 @@ func GetComputedStyleForNode(frame *cdp.Frame, nodeID dom.NodeID, timeout time.D
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: css.CommandCSSGetComputedStyleForNode, Params: &css.GetComputedStyleForNodeArgs{NodeID: nodeID}, Reply: &css.GetComputedStyleForNodeReply{}, Timeout: timeout},
 		})
-	err := action.Run(frame)
+	err := action.Run()
 	if err != nil {
 		log.Print(err)
 		return nil, err

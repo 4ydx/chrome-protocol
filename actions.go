@@ -118,19 +118,19 @@ func (act *Action) ToJSON() []byte {
 
 // Run sends the current action to websocket code that will create a request.
 // Then the action will wait until all commands and expected events are completed.
-func (act *Action) Run(frame *Frame) error {
-	frame.Cache.Set(act)
-	frame.ActionChan <- act.ToJSON()
+func (act *Action) Run() error {
+	act.Frame.Cache.Set(act)
+	act.Frame.ActionChan <- act.ToJSON()
 	commandTimeout := act.CommandTimeout()
 	for {
 		select {
 		case <-commandTimeout:
 			// The current action's current command has timed out.
 			return fmt.Errorf("command timeout %s", act.ToJSON())
-		case <-frame.CacheCompleteChan:
+		case <-act.Frame.CacheCompleteChan:
 			// The current action is complete.
 			return nil
-		case commandTimeout = <-frame.CommandChan:
+		case commandTimeout = <-act.Frame.CommandChan:
 			// Set the current timeout to the next command's timeout.
 			log.Print("Next command timeout set.")
 		}
