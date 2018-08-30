@@ -199,18 +199,3 @@ func ClickWithModifiers(frame *cdp.Frame, find string, modifiers int, events []c
 	}
 	return events, nil
 }
-
-// Children gets the children of the given nodeID at the given depth.
-func Children(frame *cdp.Frame, nodeID dom.NodeID, depth int, timeout time.Duration) (*dom.SetChildNodesReply, error) {
-	action := cdp.NewAction(frame,
-		[]cdp.Event{},
-		[]cdp.Command{
-			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMRequestChildNodes, Params: &dom.RequestChildNodesArgs{NodeID: nodeID, Depth: depth}, Reply: &dom.RequestChildNodesReply{}, Timeout: timeout},
-		})
-	err := action.Run()
-	if err != nil {
-		log.Print(err)
-		return nil, err
-	}
-	return action.Events[dom.EventDOMSetChildNodes].Value.(*dom.SetChildNodesReply), nil
-}
