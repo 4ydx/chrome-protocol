@@ -3,7 +3,6 @@ package cdp
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/4ydx/cdp/protocol/dom"
 	"log"
 	"sync"
 	"time"
@@ -226,13 +225,11 @@ func (act *Action) SetEvent(name string, m Message) error {
 				}
 			}
 		}
+		UpdateDOMEvent(act.Frame, m.Method, e.Value)
+
 		e.IsFound = true
 		act.Events[string(name)] = e
 
-		// Document update events must clear the frame DOM cache.
-		if e.Name == dom.EventDOMDocumentUpdated {
-			act.Frame.SetDOM(nil)
-		}
 		log.Printf(".EVT: %s %+v\n", name, m)
 		if act.Frame.LogLevel >= LogDetails {
 			log.Printf("    : %+v\n", e)

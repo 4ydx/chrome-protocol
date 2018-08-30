@@ -51,11 +51,38 @@ func (f *Frame) SetDOM(dom *dom.GetFlattenedDocumentReply) {
 	f.DOM = dom
 }
 
+// SetChildNodes updates the Frame DOM with new child nodes.
+func (f *Frame) SetChildNodes(nodes *[]dom.Node) {
+	f.Lock()
+	defer f.Unlock()
+	f.setChildNodesHelper(nodes)
+}
+
+func (f *Frame) setChildNodesHelper(nodes *[]dom.Node) {
+	if nodes == nil {
+		return
+	}
+	for _, node := range *nodes {
+		if node.ChildNodeCount > 0 {
+			f.setChildNodesHelper(node.Children)
+		}
+		f.DOM.Nodes = append(f.DOM.Nodes, node)
+	}
+}
+
 // GetDOM allows for getting the Frame DOM value safely.
+// This could be a bit racy depending on when documentUpdated events are fired.
 func (f *Frame) GetDOM() *dom.GetFlattenedDocumentReply {
 	f.RLock()
 	defer f.RUnlock()
 	return f.DOM
+}
+
+// AddDOMNode allows for setting the Frame DOM value safely.
+func (f *Frame) AddDOMNode(node dom.Node) {
+	f.Lock()
+	defer f.Unlock()
+	f.DOM.Nodes = append(f.DOM.Nodes, node)
 }
 
 // GetFrameID returns the current frameID.

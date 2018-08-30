@@ -56,6 +56,16 @@ func GetWebsocket(port int) *websocket.Conn {
 	return c
 }
 
+// UpdateDOMEvent takes the event and, for a certain subset of events, makes sure that the current DOM object is updated.
+func UpdateDOMEvent(frame *Frame, method string, event json.Unmarshaler) {
+	switch method {
+	case dom.EventDOMDocumentUpdated:
+		frame.SetDOM(nil)
+	case dom.EventDOMSetChildNodes:
+		frame.SetChildNodes(&event.(*dom.SetChildNodesReply).Nodes)
+	}
+}
+
 // Read reads replies from the server over the websocket.
 func Read(frame *Frame) {
 	for {
@@ -108,11 +118,6 @@ func Read(frame *Frame) {
 			continue
 		}
 
-		// Document update events must clear the frame DOM cache.
-		if m.Method == dom.EventDOMDocumentUpdated {
-			frame.SetDOM(nil)
-		}
-
 		// Generic unmarshaler for all other Events.
 		e, ok := lib.GetEventUnmarshaler(m.Method)
 		if ok {
@@ -131,6 +136,7 @@ func Read(frame *Frame) {
 			if frame.LogLevel > LogBasic {
 				log.Printf(".GOT event %+v\n", e)
 			}
+			UpdateDOMEvent(frame, m.Method, e)
 		} else {
 			if frame.LogLevel > LogBasic {
 				log.Printf(".SKP event %s %s %s\n", m.Method, m.Params, m.Result)
