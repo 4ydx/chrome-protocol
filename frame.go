@@ -46,6 +46,7 @@ type Frame struct {
 	LogLevel LogLevelValue
 }
 
+// SetCurrentAction sets the current action that the frame is evaluating.
 func (f *Frame) SetCurrentAction(act *Action) {
 	f.Lock()
 	defer f.Unlock()
