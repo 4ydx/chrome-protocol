@@ -27,7 +27,7 @@ func Start(browser *Browser, logLevel LogLevelValue) *Frame {
 		},
 		Browser:           browser,
 		Conn:              GetWebsocket(browser.Port),
-		Cache:             &ActionCache{RWMutex: &sync.RWMutex{}},
+		CurrentAction:     &Action{},
 		CacheCompleteChan: make(chan struct{}),
 		ActionChan:        make(chan []byte),
 		CommandChan:       make(chan (<-chan time.Time)),

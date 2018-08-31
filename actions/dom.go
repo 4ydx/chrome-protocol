@@ -16,12 +16,12 @@ func GetEntireDocument(frame *cdp.Frame, timeout time.Duration) (*dom.GetFlatten
 		log.Print("Using cached Frame DOM.")
 		return frameDOM, nil
 	}
-	a0 := cdp.NewAction(frame,
+	a0 := cdp.NewAction(
 		[]cdp.Event{},
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetFlattenedDocument, Params: &dom.GetFlattenedDocumentArgs{Depth: -1}, Reply: &dom.GetFlattenedDocumentReply{}, Timeout: timeout},
 		})
-	err := a0.Run()
+	err := a0.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return nil, err
@@ -42,12 +42,12 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 	}
 
 	// Make nodeId search request.
-	a0 := cdp.NewAction(frame,
+	a0 := cdp.NewAction(
 		[]cdp.Event{},
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMPerformSearch, Params: &dom.PerformSearchArgs{Query: find}, Reply: &dom.PerformSearchReply{}, Timeout: timeout},
 		})
-	err = a0.Run()
+	err = a0.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return found, err
@@ -70,12 +70,12 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 		FromIndex: 0,
 		ToIndex:   ret.ResultCount,
 	}
-	a1 := cdp.NewAction(frame,
+	a1 := cdp.NewAction(
 		[]cdp.Event{},
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetSearchResults, Params: params, Reply: &dom.GetSearchResultsReply{}, Timeout: timeout},
 		})
-	err = a1.Run()
+	err = a1.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return found, err
@@ -128,11 +128,11 @@ func Focus(frame *cdp.Frame, find string, timeout time.Duration) error {
 		log.Print(err)
 		return err
 	}
-	err = cdp.NewAction(frame,
+	err = cdp.NewAction(
 		[]cdp.Event{},
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMFocus, Params: &dom.FocusArgs{NodeID: target}, Reply: &dom.FocusReply{}, Timeout: timeout},
-		}).Run()
+		}).Run(frame)
 	if err != nil {
 		log.Print(err)
 		return err
@@ -154,12 +154,12 @@ func ClickWithModifiers(frame *cdp.Frame, find string, modifiers int, events []c
 		log.Print(err)
 		return events, err
 	}
-	a0 := cdp.NewAction(frame,
+	a0 := cdp.NewAction(
 		[]cdp.Event{},
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetBoxModel, Params: &dom.GetBoxModelArgs{NodeID: target}, Reply: &dom.GetBoxModelReply{}, Timeout: timeout},
 		})
-	err = a0.Run()
+	err = a0.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return events, err
@@ -173,7 +173,7 @@ func ClickWithModifiers(frame *cdp.Frame, find string, modifiers int, events []c
 	yMid := (box[5]-box[1])/2 + box[1]
 
 	// Mouse click.
-	err = cdp.NewAction(frame,
+	err = cdp.NewAction(
 		events,
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{
@@ -192,7 +192,7 @@ func ClickWithModifiers(frame *cdp.Frame, find string, modifiers int, events []c
 				ClickCount: 1,
 				Type:       "mouseReleased",
 			}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
-		}).Run()
+		}).Run(frame)
 	if err != nil {
 		log.Print(err)
 		return events, err

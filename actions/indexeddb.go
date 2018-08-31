@@ -9,12 +9,12 @@ import (
 
 // RequestDatabaseNames returns a list of the databases controlled by the given security origin.
 func RequestDatabaseNames(frame *cdp.Frame, securityOrigin string, timeout time.Duration) (*indexeddb.RequestDatabaseNamesReply, error) {
-	action := cdp.NewAction(frame,
+	action := cdp.NewAction(
 		[]cdp.Event{},
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBRequestDatabaseNames, Params: &indexeddb.RequestDatabaseNamesArgs{SecurityOrigin: securityOrigin}, Reply: &indexeddb.RequestDatabaseNamesReply{}, Timeout: timeout},
 		})
-	err := action.Run()
+	err := action.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return nil, err
@@ -24,12 +24,12 @@ func RequestDatabaseNames(frame *cdp.Frame, securityOrigin string, timeout time.
 
 // RequestDatabase returns the database with object stores.
 func RequestDatabase(frame *cdp.Frame, securityOrigin, databaseName string, timeout time.Duration) (*indexeddb.RequestDatabaseReply, error) {
-	action := cdp.NewAction(frame,
+	action := cdp.NewAction(
 		[]cdp.Event{},
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBRequestDatabase, Params: &indexeddb.RequestDatabaseArgs{SecurityOrigin: securityOrigin, DatabaseName: databaseName}, Reply: &indexeddb.RequestDatabaseReply{}, Timeout: timeout},
 		})
-	err := action.Run()
+	err := action.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return nil, err
@@ -48,12 +48,12 @@ func RequestData(frame *cdp.Frame, securityOrigin, databaseName, objectStoreName
 		PageSize:        pageSize,
 		KeyRange:        keyRange,
 	}
-	action := cdp.NewAction(frame,
+	action := cdp.NewAction(
 		[]cdp.Event{},
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBRequestData, Params: args, Reply: &indexeddb.RequestDataReply{}, Timeout: timeout},
 		})
-	err := action.Run()
+	err := action.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return nil, err

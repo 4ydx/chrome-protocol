@@ -12,7 +12,7 @@ import (
 func TestClick(t *testing.T) {
 	browser := cdp.NewBrowser(BrowserPath, 9222, "dom_test.log")
 
-	frame := cdp.Start(browser, cdp.LogBasic)
+	frame := cdp.Start(browser, cdp.LogDetails)
 	defer frame.Stop(true)
 
 	// Enable page, dom, and network events

@@ -1,8 +1,10 @@
 package cdp
 
 import (
+	"encoding/json"
 	"github.com/4ydx/cdp/protocol/dom"
 	"github.com/gorilla/websocket"
+	"log"
 	"os"
 	"sync"
 	"time"
@@ -34,14 +36,21 @@ type Frame struct {
 	// ActionChan sends Actions to the websocket.
 	ActionChan chan []byte
 
-	// Cache stores the Action that is currently active.
-	Cache *ActionCache
+	// CurrentAction stores the Action that is currently active.
+	CurrentAction *Action
 
 	// LogFile is the file that all log output will be written to.
 	LogFile *os.File
 
 	// LogLevel specifies how much information should be logged. Higher number results in more data.
 	LogLevel LogLevelValue
+}
+
+func (f *Frame) SetCurrentAction(act *Action) {
+	f.Lock()
+	defer f.Unlock()
+	f.CurrentAction = act
+	f.ActionChan <- f.toJSON()
 }
 
 // SetDOM allows for setting the Frame DOM value safely.
@@ -51,20 +60,13 @@ func (f *Frame) SetDOM(dom *dom.GetFlattenedDocumentReply) {
 	f.DOM = dom
 }
 
-// SetChildNodes updates the Frame DOM with new child nodes.
-func (f *Frame) SetChildNodes(nodes *[]dom.Node) {
-	f.Lock()
-	defer f.Unlock()
-	f.setChildNodesHelper(nodes)
-}
-
-func (f *Frame) setChildNodesHelper(nodes *[]dom.Node) {
+func (f *Frame) setChildNodes(nodes *[]dom.Node) {
 	if nodes == nil {
 		return
 	}
 	for _, node := range *nodes {
 		if node.ChildNodeCount > 0 {
-			f.setChildNodesHelper(node.Children)
+			f.setChildNodes(node.Children)
 		}
 		f.DOM.Nodes = append(f.DOM.Nodes, node)
 	}
@@ -125,14 +127,6 @@ func (f *Frame) GetFrameID() string {
 	return f.FrameID
 }
 
-// SetFrameID sets the current frameID.
-func (f *Frame) SetFrameID(frameID string) {
-	f.Lock()
-	defer f.Unlock()
-
-	f.FrameID = frameID
-}
-
 // Stop closes used resources.
 func (f *Frame) Stop(closeBrowser bool) {
 	defer func() {
@@ -145,4 +139,186 @@ func (f *Frame) Stop(closeBrowser bool) {
 		}
 	}()
 	f.AllComplete <- struct{}{}
+}
+
+// IsCommandComplete indicates that all commands are complete.
+func (f *Frame) IsCommandComplete() bool {
+	f.RLock()
+	defer f.RUnlock()
+
+	return f.CurrentAction.CommandIndex == len(f.CurrentAction.Commands)
+}
+
+// IsComplete indicates that all commands and events are complete.
+func (f *Frame) IsComplete() bool {
+	f.RLock()
+	defer f.RUnlock()
+
+	complete := true
+	for _, e := range f.CurrentAction.Events {
+		if e.IsRequired && !e.IsFound {
+			complete = false
+		}
+	}
+	return f.CurrentAction.CommandIndex == len(f.CurrentAction.Commands) && complete
+}
+
+// CommandTimeout once timed out will trigger an error and stop the automation.
+func (f *Frame) CommandTimeout() <-chan time.Time {
+	f.RLock()
+	defer f.RUnlock()
+
+	return time.After(f.CurrentAction.Commands[f.CurrentAction.CommandIndex].Timeout)
+}
+
+// ToJSON encodes the current command.  This is the chrome devtools protocol request.
+// In the event that all commands are complete, continue to display the last command for debugging convenience.
+func (f *Frame) ToJSON() []byte {
+	f.RLock()
+	defer f.RUnlock()
+	return f.toJSON()
+}
+
+func (f *Frame) toJSON() []byte {
+	index := f.CurrentAction.CommandIndex
+	if f.CurrentAction.CommandIndex == len(f.CurrentAction.Commands) {
+		index--
+	}
+	s := f.CurrentAction.Commands[index]
+
+	j, err := json.Marshal(s)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return j
+}
+
+// Log writes the current state of the action to the log.
+func (f *Frame) Log() {
+	f.RLock()
+	defer f.RUnlock()
+
+	log.Printf("Frame %+v\n", f.CurrentAction)
+	for i, command := range f.CurrentAction.Commands {
+		log.Printf("%d Command %d Params %+v", i, command.ID, command.Params)
+		log.Printf("%d Command %d Return %+v", i, command.ID, command.Reply)
+	}
+}
+
+// HasCommandID determines if an id matches the current action's command's unique id.
+func (f *Frame) HasCommandID(id int64) bool {
+	f.RLock()
+	defer f.RUnlock()
+
+	if f.CurrentAction.CommandIndex == len(f.CurrentAction.Commands) {
+		return false
+	}
+	return f.CurrentAction.Commands[f.CurrentAction.CommandIndex].ID == id
+}
+
+// HasEvent returns true when the action has an event with the given MethodType.
+func (f *Frame) HasEvent(name string) bool {
+	f.RLock()
+	defer f.RUnlock()
+
+	_, ok := f.CurrentAction.Events[name]
+	return ok
+}
+
+// GetCommandMethod returns the method of the command that is currently active or the very last method.
+func (f *Frame) GetCommandMethod() string {
+	f.RLock()
+	defer f.RUnlock()
+
+	if f.CurrentAction.CommandIndex == len(f.CurrentAction.Commands) {
+		return f.CurrentAction.Commands[f.CurrentAction.CommandIndex-1].Method
+	}
+	return f.CurrentAction.Commands[f.CurrentAction.CommandIndex].Method
+}
+
+// SetEvent takes the given message and sets an event's params or results's.
+func (f *Frame) SetEvent(frame *Frame, name string, m Message) error {
+	f.Lock()
+	defer f.Unlock()
+
+	// Attempt to compare the incoming Event's frameID value with the existing value.
+	if e, ok := f.CurrentAction.Events[name]; ok {
+		if frame.FrameID == "" {
+			log.Println(".ERR FrameID is empty during event processing.")
+			if len(m.Params) > 0 {
+				err := e.Value.UnmarshalJSON(m.Params)
+				if err != nil {
+					log.Printf("Unmarshal params error: %s; for %+v; from %+v", err.Error(), e.Value, m.Params)
+					return err
+				}
+			} else {
+				err := e.Value.UnmarshalJSON(m.Result)
+				if err != nil {
+					log.Printf("Unmarshal result error: %s; for %+v; from %+v", err.Error(), e.Value, m.Result)
+					return err
+				}
+			}
+		} else {
+			if len(m.Params) > 0 {
+				if ok := e.Value.MatchFrameID(frame.FrameID, m.Params); !ok {
+					// When the frameID does not match, it is definitely not intended for the current Frame.
+					log.Printf("No matching frameID %s %s", m.Method, m.Params)
+					return nil
+				}
+			} else {
+				if ok := e.Value.MatchFrameID(frame.FrameID, m.Result); !ok {
+					log.Printf("No matching frameID %s %s", m.Method, m.Result)
+					return nil
+				}
+			}
+		}
+		UpdateDOMEvent(frame, m.Method, e.Value)
+
+		e.IsFound = true
+		f.CurrentAction.Events[string(name)] = e
+
+		log.Printf(".EVT: %s %+v\n", name, m)
+		if frame.LogLevel >= LogDetails {
+			log.Printf("    : %+v\n", e)
+			log.Printf("    : %+v\n", e.Value)
+		}
+	}
+	return nil
+}
+
+// SetResult applies the message returns to the current command and advances the command.
+func (f *Frame) SetResult(frame *Frame, m Message) error {
+	f.Lock()
+	defer f.Unlock()
+
+	s := f.CurrentAction.Commands[f.CurrentAction.CommandIndex]
+	if frame.FrameID == "" {
+		err := s.Reply.UnmarshalJSON(m.Result)
+		if err != nil {
+			log.Printf("Unmarshal error: %s", err)
+			return err
+		}
+		frame.FrameID = s.Reply.GetFrameID()
+	} else {
+		if ok := s.Reply.MatchFrameID(frame.FrameID, m.Result); !ok {
+			log.Printf("No matching frameID")
+			return nil
+		}
+	}
+	f.CurrentAction.CommandIndex++
+
+	log.Printf(".STP COMPLETE: %+v\n", s)
+	if frame.LogLevel >= LogDetails {
+		log.Printf("             : %+v\n", s.Params)
+		log.Printf("             : %+v\n", s.Reply)
+	}
+	return nil
+}
+
+// Clear the action.
+func (f *Frame) Clear() {
+	f.Lock()
+	defer f.Unlock()
+
+	f.CurrentAction = &Action{}
 }

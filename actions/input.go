@@ -34,11 +34,11 @@ func Fill(frame *cdp.Frame, find, fill string, timeout time.Duration) error {
 		return err
 	}
 	for _, key := range fill {
-		err := cdp.NewAction(frame,
+		err := cdp.NewAction(
 			[]cdp.Event{},
 			[]cdp.Command{
 				cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchKeyEvent, Params: &input.DispatchKeyEventArgs{Type: "char", Text: string(key)}, Reply: &input.DispatchKeyEventReply{}, Timeout: timeout},
-			}).Run()
+			}).Run(frame)
 		if err != nil {
 			log.Print(err)
 			return err
@@ -50,7 +50,7 @@ func Fill(frame *cdp.Frame, find, fill string, timeout time.Duration) error {
 // KeyDown sends a keydown request to the server.
 func KeyDown(frame *cdp.Frame, modifiers int, timeout time.Duration) error {
 	windowsVirtualKeyCode := GetWindowsVirtualKeyCode(modifiers)
-	err := cdp.NewAction(frame,
+	err := cdp.NewAction(
 		[]cdp.Event{},
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchKeyEvent, Params: &input.DispatchKeyEventArgs{
@@ -58,7 +58,7 @@ func KeyDown(frame *cdp.Frame, modifiers int, timeout time.Duration) error {
 				Type:      "keyDown",
 				WindowsVirtualKeyCode: windowsVirtualKeyCode,
 			}, Reply: &input.DispatchKeyEventReply{}, Timeout: timeout},
-		}).Run()
+		}).Run(frame)
 	if err != nil {
 		log.Print(err)
 		return err

@@ -60,9 +60,9 @@ func GetWebsocket(port int) *websocket.Conn {
 func UpdateDOMEvent(frame *Frame, method string, event json.Unmarshaler) {
 	switch method {
 	case dom.EventDOMDocumentUpdated:
-		frame.SetDOM(nil)
+		frame.DOM = nil
 	case dom.EventDOMSetChildNodes:
-		frame.SetChildNodes(&event.(*dom.SetChildNodesReply).Nodes)
+		frame.setChildNodes(&event.(*dom.SetChildNodesReply).Nodes)
 	}
 }
 
@@ -86,17 +86,17 @@ func Read(frame *Frame) {
 		// log.Printf(".DEC: %+v\n", m)
 
 		hasCommand, hasEvent := false, false
-		if hasCommand = frame.Cache.HasCommandID(m.ID); hasCommand {
+		if hasCommand = frame.HasCommandID(m.ID); hasCommand {
 			// All messages with an ID matching a command are set here.
-			err := frame.Cache.SetResult(m)
+			err := frame.SetResult(frame, m)
 			if err != nil {
 				// An unmarshal error means that the server sent an error message.  Retry.
-				frame.ActionChan <- frame.Cache.ToJSON()
+				frame.ActionChan <- frame.ToJSON()
 				continue
 			}
-		} else if hasEvent = frame.Cache.HasEvent(m.Method); hasEvent {
+		} else if hasEvent = frame.HasEvent(m.Method); hasEvent {
 			// Check and then set Events related to the current Action.
-			err = frame.Cache.SetEvent(m.Method, m)
+			err = frame.SetEvent(frame, m.Method, m)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -104,16 +104,16 @@ func Read(frame *Frame) {
 
 		// If matched a command or an event, then this message is fully processed.
 		if hasCommand || hasEvent {
-			if frame.Cache.IsComplete() {
-				log.Printf("Action Completed %s %s", frame.Cache.GetCommandMethod(), frame.Cache.GetFrameID())
-				frame.Cache.Clear()
+			if frame.IsComplete() {
+				log.Printf("Action Completed %s %s", frame.GetCommandMethod(), frame.GetFrameID())
+				frame.Clear()
 				frame.CacheCompleteChan <- struct{}{}
-			} else if !frame.Cache.IsCommandComplete() {
-				log.Printf("Action Next Command %s %s", frame.Cache.GetCommandMethod(), frame.Cache.GetFrameID())
-				frame.ActionChan <- frame.Cache.ToJSON()
-				frame.CommandChan <- frame.Cache.CommandTimeout()
+			} else if !frame.IsCommandComplete() {
+				log.Printf("Action Next Command %s %s", frame.GetCommandMethod(), frame.GetFrameID())
+				frame.ActionChan <- frame.ToJSON()
+				frame.CommandChan <- frame.CommandTimeout()
 			} else {
-				log.Printf("Action Event Waiting %s %s", frame.Cache.GetCommandMethod(), frame.Cache.GetFrameID())
+				log.Printf("Action Event Waiting %s %s", frame.GetCommandMethod(), frame.GetFrameID())
 			}
 			continue
 		}

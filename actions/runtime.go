@@ -10,12 +10,12 @@ import (
 
 // Evaluate runs the javascript expression in the current frame's context.
 func Evaluate(frame *cdp.Frame, expression string, timeout time.Duration) (*runtime.EvaluateReply, error) {
-	action := cdp.NewAction(frame,
+	action := cdp.NewAction(
 		[]cdp.Event{},
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeEvaluate, Params: &runtime.EvaluateArgs{Expression: expression, Silent: false}, Reply: &runtime.EvaluateReply{}, Timeout: timeout},
 		})
-	err := action.Run()
+	err := action.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return nil, err
@@ -30,12 +30,12 @@ func GetProperties(frame *cdp.Frame, objectID shared.RemoteObjectID, ownProperti
 		OwnProperties:          ownProperties,
 		AccessorPropertiesOnly: accessorPropertiesOnly,
 	}
-	action := cdp.NewAction(frame,
+	action := cdp.NewAction(
 		[]cdp.Event{},
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeGetProperties, Params: args, Reply: &runtime.GetPropertiesReply{}, Timeout: timeout},
 		})
-	err := action.Run()
+	err := action.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return nil, err

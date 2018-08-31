@@ -38,35 +38,35 @@ func GetNavigationEvents() []cdp.Event {
 // Navigate sends the browser to the given URL
 func Navigate(frame *cdp.Frame, url string, timeout time.Duration) ([]cdp.Event, error) {
 	events := GetNavigationEvents()
-	action := cdp.NewAction(frame,
+	action := cdp.NewAction(
 		events,
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: page.CommandPageNavigate, Params: &page.NavigateArgs{URL: url}, Reply: &page.NavigateReply{}, Timeout: timeout},
 		})
-	if err := action.Run(); err != nil {
+	err := action.Run(frame)
+	if err != nil {
 		log.Print(err)
-		return events, err
 	}
-	return events, nil
+	return events, err
 }
 
 // Screenshot captures a screenshot and saves it to the given destination.
 func Screenshot(frame *cdp.Frame, destination, format string, quality int, clip *page.Viewport, timeout time.Duration) (err error) {
 	var action *cdp.Action
 	if clip != nil {
-		action = cdp.NewAction(frame,
+		action = cdp.NewAction(
 			[]cdp.Event{},
 			[]cdp.Command{
 				cdp.Command{ID: frame.RequestID.GetNext(), Method: page.CommandPageCaptureScreenshot, Params: &page.CaptureScreenshotArgs{Format: format, Clip: clip, Quality: quality}, Reply: &page.CaptureScreenshotReply{}, Timeout: timeout},
 			})
 	} else {
-		action = cdp.NewAction(frame,
+		action = cdp.NewAction(
 			[]cdp.Event{},
 			[]cdp.Command{
 				cdp.Command{ID: frame.RequestID.GetNext(), Method: page.CommandPageCaptureScreenshot, Params: &page.CaptureScreenshotArgs{Format: format, Quality: quality}, Reply: &page.CaptureScreenshotReply{}, Timeout: timeout},
 			})
 	}
-	if err = action.Run(); err != nil {
+	if err = action.Run(frame); err != nil {
 		log.Print(err)
 		return err
 	}
