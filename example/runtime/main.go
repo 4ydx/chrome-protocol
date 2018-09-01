@@ -9,11 +9,11 @@ import (
 )
 
 func main() {
-	browser := cdp.NewBrowser("/usr/bin/google-chrome", 9222)
+	browser := cdp.NewBrowser("/usr/bin/google-chrome", 9222, "runtime.log")
 
-	frame := cdp.Start(9222, cdp.LogBasic)
+	frame := cdp.Start(browser, cdp.LogBasic)
 	defer func() {
-		cdp.Stop()
+		frame.Stop(false)
 
 		// Give yourself time to view the final page in the browser.
 		time.Sleep(3 * time.Second)
@@ -46,10 +46,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	// We expect that the value of the element will be "testing".  I am seeing a value of &"testing" and I'm not familiar
-	// enough to know why this is prepended by an ampersand, but it is there.  The actual data in the byte array is only
-	// the values "testing".
 	fmt.Printf("%s\n", *reply.Result.Value)
 
 	log.Printf("\n-- All completed for %s --\n", frame.FrameID)
