@@ -2,6 +2,7 @@ package actions
 
 import (
 	"bytes"
+	"errors"
 	"github.com/4ydx/cdp/protocol/page"
 	"github.com/4ydx/chrome-protocol"
 	"image"
@@ -46,6 +47,11 @@ func Navigate(frame *cdp.Frame, url string, timeout time.Duration) ([]cdp.Event,
 	err := action.Run(frame)
 	if err != nil {
 		log.Print(err)
+	}
+	if action.Commands[0].Reply.(*page.NavigateReply).ErrorText != "" {
+		err := action.Commands[0].Reply.(*page.NavigateReply).ErrorText
+		log.Print(err)
+		return events, errors.New(err)
 	}
 	return events, err
 }
