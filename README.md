@@ -11,6 +11,7 @@ This is still a work in progress.
 
 - Very fast.
 - No hidden errors.
+- No hidden sleep calls/timeouts.
 - Simple approach makes it easy to understand what is happening under the hood.
 
 ## Examples
