@@ -88,7 +88,7 @@ func (f *Frame) AddDOMNode(node dom.Node) {
 	f.DOM.Nodes = append(f.DOM.Nodes, node)
 }
 
-// Children returns the child nodes of the given parentID.
+// Children returns a deep copy of the child nodes of the given parentID.
 // NOTE: Expecting that code elsewhere has already populated the frame.DOM object.
 func (f *Frame) Children(parentID dom.NodeID) []dom.Node {
 	f.RLock()
