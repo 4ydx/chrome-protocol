@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"github.com/4ydx/cdp/protocol/dom"
 	"github.com/4ydx/cdp/protocol/input"
 	"github.com/4ydx/chrome-protocol"
 	"log"
@@ -54,10 +55,68 @@ func KeyDown(frame *cdp.Frame, modifiers int, timeout time.Duration) error {
 		[]cdp.Event{},
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchKeyEvent, Params: &input.DispatchKeyEventArgs{
-				Modifiers: modifiers,
-				Type:      "keyDown",
+				Modifiers:             modifiers,
+				Type:                  "keyDown",
 				WindowsVirtualKeyCode: windowsVirtualKeyCode,
 			}, Reply: &input.DispatchKeyEventReply{}, Timeout: timeout},
+		}).Run(frame)
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+	return nil
+}
+
+// MouseScroll scrolls the mouse the given amount.
+func MouseScroll(frame *cdp.Frame, deltaX, deltaY float64, timeout time.Duration) error {
+	nodes, err := FindAll(frame, "body", timeout)
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+	nodeID := dom.NodeID(0)
+	for _, n := range nodes {
+		if n.NodeName == "BODY" {
+			nodeID = n.NodeID
+		}
+	}
+	a0 := cdp.NewAction(
+		[]cdp.Event{},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetBoxModel, Params: &dom.GetBoxModelArgs{NodeID: nodeID}, Reply: &dom.GetBoxModelReply{}, Timeout: timeout},
+		})
+	err = a0.Run(frame)
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+
+	// Box is an array of quad vertices, x immediately followed by y for each point, points clock-wise.
+	// (0, 1), (2, 3) <- upper edge
+	// (4, 5), (6, 7) <- lower edge
+	box := a0.Commands[0].Reply.(*dom.GetBoxModelReply).Model.Content
+	xMid := (box[2]-box[0])/2 + box[0]
+	yMid := (box[5]-box[1])/2 + box[1]
+
+	// Null values are omited right now in the generated code.  Regardless this command requires both values.
+	if deltaX == 0 {
+		deltaX = 0.000001
+	}
+	if deltaY == 0 {
+		deltaY = 0.000001
+	}
+	err = cdp.NewAction(
+		[]cdp.Event{},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{
+				X:          xMid,
+				Y:          yMid,
+				Button:     "middle",
+				ClickCount: 1,
+				Type:       "mouseWheel",
+				DeltaX:     deltaX,
+				DeltaY:     deltaY,
+			}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
 		}).Run(frame)
 	if err != nil {
 		log.Print(err)
