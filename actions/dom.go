@@ -154,12 +154,17 @@ func ClickWithModifiers(frame *cdp.Frame, find string, modifiers int, events []c
 		log.Print(err)
 		return events, err
 	}
+	return ClickNodeID(frame, target, modifiers, events, timeout)
+}
+
+// ClickNodeID clicks on the element identified by the given dom.NodeID value.
+func ClickNodeID(frame *cdp.Frame, nodeID dom.NodeID, modifiers int, events []cdp.Event, timeout time.Duration) ([]cdp.Event, error) {
 	a0 := cdp.NewAction(
 		[]cdp.Event{},
 		[]cdp.Command{
-			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetBoxModel, Params: &dom.GetBoxModelArgs{NodeID: target}, Reply: &dom.GetBoxModelReply{}, Timeout: timeout},
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMGetBoxModel, Params: &dom.GetBoxModelArgs{NodeID: nodeID}, Reply: &dom.GetBoxModelReply{}, Timeout: timeout},
 		})
-	err = a0.Run(frame)
+	err := a0.Run(frame)
 	if err != nil {
 		log.Print(err)
 		return events, err
@@ -198,4 +203,35 @@ func ClickWithModifiers(frame *cdp.Frame, find string, modifiers int, events []c
 		return events, err
 	}
 	return events, nil
+}
+
+// Children of the first element node that matches the find parameter.  If the frame.DOM object already has the data, this call will do nothing.  Otherwise, it should trigger DOM.setChildNodes events.
+// NOTE: It appears that before this action will be completed (before the reply is received), if the server has not yet sent any/some of the child nodes of the given nodeID, then it will send those to the client
+//       as DOM.setChildNodes events.  We do not need to pick those up here since there is a method in the websocket loop of github.com/4ydx/chrome-protocol that watches for such events and updates the DOM object.
+//       In fact, I don't know how many of those events might be fired and an action's event slice isn't designed to handle multiples of the same event type.
+func Children(frame *cdp.Frame, nodeID dom.NodeID, timeout time.Duration) error {
+	err := cdp.NewAction(
+		[]cdp.Event{},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMRequestChildNodes, Params: &dom.RequestChildNodesArgs{NodeID: nodeID, Depth: -1}, Reply: &dom.RequestChildNodesReply{}, Timeout: timeout},
+		}).Run(frame)
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+	return nil
+}
+
+// SetAttributeValue sets the value of the given attribute of the given nodeID to the given value.
+func SetAttributeValue(frame *cdp.Frame, nodeID dom.NodeID, name, value string, timeout time.Duration) error {
+	err := cdp.NewAction(
+		[]cdp.Event{},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMSetAttributeValue, Params: &dom.SetAttributeValueArgs{NodeID: nodeID, Name: name, Value: value}, Reply: &dom.SetAttributeValueReply{}, Timeout: timeout},
+		}).Run(frame)
+	if err != nil {
+		log.Print(err)
+		return err
+	}
+	return nil
 }

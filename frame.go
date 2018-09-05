@@ -88,8 +88,35 @@ func (f *Frame) AddDOMNode(node dom.Node) {
 	f.DOM.Nodes = append(f.DOM.Nodes, node)
 }
 
-// FindByAttribute will search the existing cached DOM for nodes whose given attribute matches the given value.
-// Note that this will not attempt get the DOM if it isn't yet populated.  Might change this later.
+// Children returns the child nodes of the given parentID.
+// NOTE: Expecting that code elsewhere has already populated the frame.DOM object.
+func (f *Frame) Children(parentID dom.NodeID) []dom.Node {
+	f.RLock()
+	defer f.RUnlock()
+
+	return f.children(parentID, []dom.Node{})
+}
+
+func (f *Frame) children(parentID dom.NodeID, found []dom.Node) []dom.Node {
+	if f.DOM == nil {
+		return found
+	}
+	for _, node := range f.DOM.Nodes {
+		if node.ParentID != parentID {
+			continue
+		}
+		found = append(found, node)
+
+		if node.ChildNodeCount > 0 {
+			// Remember that frame.DOM is a flattened representation so we should not be interacting with node.Children.
+			found = f.children(node.NodeID, found)
+		}
+	}
+	return found
+}
+
+// FindByAttribute will search the existing cached DOM for nodes whose given attribute matches the given value starting at the root specified by nodeID.
+// NOTE: Expecting that code elsewhere has already populated the frame.DOM object.
 func (f *Frame) FindByAttribute(parentID dom.NodeID, attribute, value string) []dom.Node {
 	f.RLock()
 	defer f.RUnlock()
