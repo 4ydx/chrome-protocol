@@ -288,13 +288,21 @@ func (f *Frame) SetEvent(frame *Frame, name string, m Message) error {
 			}
 		} else {
 			if len(m.Params) > 0 {
-				if ok := e.Value.MatchFrameID(frame.FrameID, m.Params); !ok {
+				if ok, err := e.Value.MatchFrameID(frame.FrameID, m.Params); !ok {
+					if err != nil {
+						log.Printf("Unmarshal error: %s", err)
+						return err
+					}
 					// When the frameID does not match, it is definitely not intended for the current Frame.
 					log.Printf("No matching frameID %s %s", m.Method, m.Params)
 					return nil
 				}
 			} else {
-				if ok := e.Value.MatchFrameID(frame.FrameID, m.Result); !ok {
+				if ok, err := e.Value.MatchFrameID(frame.FrameID, m.Result); !ok {
+					if err != nil {
+						log.Printf("Unmarshal error: %s", err)
+						return err
+					}
 					log.Printf("No matching frameID %s %s", m.Method, m.Result)
 					return nil
 				}
@@ -328,9 +336,14 @@ func (f *Frame) SetResult(frame *Frame, m Message) error {
 		}
 		frame.FrameID = s.Reply.GetFrameID()
 	} else {
-		if ok := s.Reply.MatchFrameID(frame.FrameID, m.Result); !ok {
-			log.Printf("No matching frameID")
-			return nil
+		if ok, err := s.Reply.MatchFrameID(frame.FrameID, m.Result); !ok {
+			if err != nil {
+				log.Printf("Unmarshal error: %s", err)
+				return err
+			} else {
+				log.Printf("No matching frameID")
+				return nil
+			}
 		}
 	}
 	f.CurrentAction.CommandIndex++

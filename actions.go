@@ -14,7 +14,7 @@ var Wait = time.Millisecond * 50
 // CommandReply specifies required methods for handling the json encoded replies received from the server.
 type CommandReply interface {
 	json.Unmarshaler
-	MatchFrameID(frameID string, m []byte) bool
+	MatchFrameID(frameID string, m []byte) (bool, error)
 	GetFrameID() string
 }
 
