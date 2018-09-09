@@ -33,9 +33,8 @@ type Command struct {
 	Method string         `json:"method,omitempty"`
 	Params json.Marshaler `json:"params,omitempty"`
 
-	Reply           CommandReply  `json:"-"` // The struct that will be filled when a matching command Id is found in a reply over the chrome websocket.
-	Timeout         time.Duration `json:"-"` // How long until the current command experiences a timeout, which will halt the entire process.
-	PreviousReturns func()        `json:"-"` // Method defined by the user to take the previous command's Returns and apply them to the current command's Params.
+	Reply   CommandReply  `json:"-"` // The struct that will be filled when a matching command Id is found in a reply over the chrome websocket.
+	Timeout time.Duration `json:"-"` // How long until the current command experiences a timeout, which will halt the entire process.
 }
 
 // Action represents a collection of json requests (commands) and any events that those requests might trigger that need to be tracked.
