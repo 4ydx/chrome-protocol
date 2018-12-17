@@ -87,7 +87,7 @@ func EnableRuntime(frame *cdp.Frame, timeout time.Duration) error {
 	return err
 }
 
-// EnableCSS tells the server to send the runtime event values across the websocket.
+// EnableCSS tells the server to send the css event values across the websocket.
 func EnableCSS(frame *cdp.Frame, timeout time.Duration) error {
 	err := cdp.NewAction(
 		[]cdp.Event{},
@@ -100,7 +100,7 @@ func EnableCSS(frame *cdp.Frame, timeout time.Duration) error {
 	return err
 }
 
-// EnableIndexedDB tells the server to send the runtime event values across the websocket.
+// EnableIndexedDB tells the server to send the indexeddb event values across the websocket.
 func EnableIndexedDB(frame *cdp.Frame, timeout time.Duration) error {
 	err := cdp.NewAction(
 		[]cdp.Event{},

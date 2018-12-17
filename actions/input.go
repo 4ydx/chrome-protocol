@@ -48,6 +48,15 @@ func Fill(frame *cdp.Frame, find, fill string, timeout time.Duration) error {
 	return nil
 }
 
+// Clear clears out the value attribute of the found element.
+func Clear(frame *cdp.Frame, find string, timeout time.Duration) error {
+	nodeID, err := FindFirstElementNodeID(frame, find, timeout)
+	if err != nil {
+		return err
+	}
+	return SetAttributeValue(frame, nodeID, "value", "", timeout)
+}
+
 // KeyDown sends a keydown request to the server.
 func KeyDown(frame *cdp.Frame, modifiers int, timeout time.Duration) error {
 	windowsVirtualKeyCode := GetWindowsVirtualKeyCode(modifiers)
