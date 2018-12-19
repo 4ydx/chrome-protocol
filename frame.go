@@ -162,7 +162,7 @@ func (f *Frame) Stop(closeBrowser bool) {
 		if err != nil {
 			panic(err)
 		}
-		if closeBrowser {
+		if closeBrowser && f.Browser != nil {
 			f.Browser.Stop()
 		}
 	}()

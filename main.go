@@ -19,6 +19,12 @@ const (
 
 // Start prepares required resources to begin automation.
 func Start(browser *Browser, logLevel LogLevelValue) *Frame {
+	// If browser is nil, the chrome protocal testing will still function as long as a browser is already
+	// properly open and listening for chrome devtools protocol requests on port 9222.
+	port := 9222
+	if browser != nil {
+		port = browser.Port
+	}
 	frame := &Frame{
 		RWMutex: &sync.RWMutex{},
 		RequestID: RequestID{
@@ -26,7 +32,7 @@ func Start(browser *Browser, logLevel LogLevelValue) *Frame {
 			Value:   11111,
 		},
 		Browser:           browser,
-		Conn:              GetWebsocket(browser.Port),
+		Conn:              GetWebsocket(port),
 		CurrentAction:     &Action{},
 		CacheCompleteChan: make(chan struct{}),
 		ActionChan:        make(chan []byte),
