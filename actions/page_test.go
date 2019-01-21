@@ -20,7 +20,7 @@ func TestNavigate(t *testing.T) {
 	}
 
 	// Navigate
-	events, err := Navigate(frame, "https://google.com", time.Second*5)
+	events, err := Navigate(frame, "https://google.com", time.Second*10)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +43,7 @@ func TestScreenshot(t *testing.T) {
 	}
 
 	// Navigate
-	if _, err := Navigate(frame, "https://google.com", time.Second*5); err != nil {
+	if _, err := Navigate(frame, "https://google.com", time.Second*10); err != nil {
 		t.Fatal(err)
 	}
 

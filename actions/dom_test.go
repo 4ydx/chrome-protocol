@@ -27,7 +27,7 @@ func TestClick(t *testing.T) {
 	}
 
 	// Navigate
-	if _, err := Navigate(frame, "https://google.com", time.Second*5); err != nil {
+	if _, err := Navigate(frame, "https://google.com", time.Second*10); err != nil {
 		t.Fatal(err)
 	}
 
@@ -72,7 +72,7 @@ func TestDOMClearedWhenEventSpecified(t *testing.T) {
 	}
 
 	// Navigate
-	if _, err := Navigate(frame, "https://google.com", time.Second*5); err != nil {
+	if _, err := Navigate(frame, "https://google.com", time.Second*10); err != nil {
 		t.Fatal(err)
 	}
 
@@ -119,7 +119,7 @@ func TestDOMClearedWhenEventNotSpecified(t *testing.T) {
 	}
 
 	// Navigate
-	if _, err := Navigate(frame, "https://google.com", time.Second*5); err != nil {
+	if _, err := Navigate(frame, "https://google.com", time.Second*10); err != nil {
 		t.Fatal(err)
 	}
 

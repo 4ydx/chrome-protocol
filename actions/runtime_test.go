@@ -18,7 +18,7 @@ func TestEvaluate(t *testing.T) {
 	}
 
 	// Navigate
-	if _, err := Navigate(frame, "https://google.com", time.Second*5); err != nil {
+	if _, err := Navigate(frame, "https://google.com", time.Second*10); err != nil {
 		t.Fatal(err)
 	}
 

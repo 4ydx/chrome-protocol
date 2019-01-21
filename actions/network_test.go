@@ -21,8 +21,7 @@ func TestCookies(t *testing.T) {
 	}
 
 	// Navigate
-	_, err := Navigate(frame, "https://google.com", time.Second*5)
-	if err != nil {
+	if _, err := Navigate(frame, "https://google.com", time.Second*10); err != nil {
 		t.Fatal(err)
 	}
 
