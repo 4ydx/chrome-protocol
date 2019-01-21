@@ -18,6 +18,7 @@ type Browser struct {
 	PID     int
 	TempDir string
 	LogFile *os.File
+	Log     *log.Logger
 }
 
 // NewBrowser accepts the path to the browser's binary, the port, and any arguments that need to be passed to the binary.
@@ -29,10 +30,7 @@ func NewBrowser(path string, port int, logfile string, args ...string) *Browser 
 	if err != nil {
 		panic(err)
 	}
-	log.SetFlags(log.Llongfile | log.LstdFlags | log.Lmicroseconds)
-	//log.SetFlags(log.Lshortfile | log.LstdFlags | log.Lmicroseconds)
-	//log.SetFlags(log.LstdFlags | log.Lmicroseconds)
-	log.SetOutput(b.LogFile)
+	b.Log = log.New(b.LogFile, "", log.Llongfile|log.LstdFlags|log.Lmicroseconds)
 
 	b.Port = port
 
@@ -57,6 +55,8 @@ func NewBrowser(path string, port int, logfile string, args ...string) *Browser 
 	// Debugging port of the browser
 	debuggingPort := fmt.Sprintf("--remote-debugging-port=%d", b.Port)
 	args = append(args, debuggingPort)
+	log.Printf("Args %+v", args)
+
 	cmd := exec.Command(path, args...)
 
 	// Prepare to send output to the log file

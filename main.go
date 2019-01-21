@@ -1,6 +1,8 @@
 package cdp
 
 import (
+	"log"
+	"os"
 	"sync"
 	"time"
 )
@@ -17,6 +19,15 @@ const (
 	LogAll = LogLevelValue(2)
 )
 
+func init() {
+	file, err := os.Create("cdp.log")
+	if err != nil {
+		panic(err)
+	}
+	log.SetFlags(log.Llongfile | log.LstdFlags | log.Lmicroseconds)
+	log.SetOutput(file)
+}
+
 // Start prepares required resources to begin automation.
 func Start(browser *Browser, logLevel LogLevelValue) *Frame {
 	frame := &Frame{
@@ -26,7 +37,7 @@ func Start(browser *Browser, logLevel LogLevelValue) *Frame {
 			Value:   11111,
 		},
 		Browser:           browser,
-		Conn:              GetWebsocket(browser.Port),
+		Conn:              GetWebsocket(browser.Log, browser.Port),
 		CurrentAction:     &Action{},
 		CacheCompleteChan: make(chan struct{}),
 		ActionChan:        make(chan []byte),

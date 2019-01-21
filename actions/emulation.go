@@ -3,7 +3,6 @@ package actions
 import (
 	"github.com/4ydx/cdp/protocol/emulation"
 	"github.com/4ydx/chrome-protocol"
-	"log"
 	"time"
 )
 
@@ -20,7 +19,7 @@ func SetDeviceMetricsOverride(frame *cdp.Frame, width, height int, mobile bool, 
 			}, Reply: &emulation.SetDeviceMetricsOverrideReply{}, Timeout: timeout},
 		}).Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return err
 	}
 	return nil

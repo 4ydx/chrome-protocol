@@ -10,7 +10,6 @@ import (
 	"github.com/4ydx/cdp/protocol/page"
 	"github.com/4ydx/cdp/protocol/runtime"
 	"github.com/4ydx/chrome-protocol"
-	lg "log"
 	"time"
 )
 
@@ -30,7 +29,7 @@ func EnableAll(frame *cdp.Frame, timeout time.Duration) error {
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeEnable, Params: &runtime.EnableArgs{}, Reply: &runtime.EnableReply{}, Timeout: timeout},
 		}).Run(frame)
 	if err != nil {
-		lg.Print(err)
+		frame.Browser.Log.Print(err)
 	}
 	return err
 }
@@ -43,7 +42,7 @@ func EnableDom(frame *cdp.Frame, timeout time.Duration) error {
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMEnable, Params: &dom.EnableArgs{}, Reply: &dom.EnableReply{}, Timeout: timeout},
 		}).Run(frame)
 	if err != nil {
-		lg.Print(err)
+		frame.Browser.Log.Print(err)
 	}
 	return err
 }
@@ -56,7 +55,7 @@ func EnablePage(frame *cdp.Frame, timeout time.Duration) error {
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: page.CommandPageEnable, Params: &page.EnableArgs{}, Reply: &page.EnableReply{}, Timeout: timeout},
 		}).Run(frame)
 	if err != nil {
-		lg.Print(err)
+		frame.Browser.Log.Print(err)
 	}
 	return err
 }
@@ -69,7 +68,7 @@ func EnableNetwork(frame *cdp.Frame, timeout time.Duration) error {
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: network.CommandNetworkEnable, Params: &network.EnableArgs{}, Reply: &network.EnableReply{}, Timeout: timeout},
 		}).Run(frame)
 	if err != nil {
-		lg.Print(err)
+		frame.Browser.Log.Print(err)
 	}
 	return err
 }
@@ -82,7 +81,7 @@ func EnableRuntime(frame *cdp.Frame, timeout time.Duration) error {
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: runtime.CommandRuntimeEnable, Params: &runtime.EnableArgs{}, Reply: &runtime.EnableReply{}, Timeout: timeout},
 		}).Run(frame)
 	if err != nil {
-		lg.Print(err)
+		frame.Browser.Log.Print(err)
 	}
 	return err
 }
@@ -95,7 +94,7 @@ func EnableCSS(frame *cdp.Frame, timeout time.Duration) error {
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: css.CommandCSSEnable, Params: &css.EnableArgs{}, Reply: &css.EnableReply{}, Timeout: timeout},
 		}).Run(frame)
 	if err != nil {
-		lg.Print(err)
+		frame.Browser.Log.Print(err)
 	}
 	return err
 }
@@ -108,7 +107,7 @@ func EnableIndexedDB(frame *cdp.Frame, timeout time.Duration) error {
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: indexeddb.CommandIndexedDBEnable, Params: &indexeddb.EnableArgs{}, Reply: &indexeddb.EnableReply{}, Timeout: timeout},
 		}).Run(frame)
 	if err != nil {
-		lg.Print(err)
+		frame.Browser.Log.Print(err)
 	}
 	return err
 }

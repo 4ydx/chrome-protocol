@@ -3,7 +3,6 @@ package cdp
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 )
 
@@ -71,7 +70,7 @@ func (act *Action) Run(frame *Frame) error {
 			return nil
 		case commandTimeout = <-frame.CommandChan:
 			// Set the current timeout to the next command's timeout.
-			log.Print("Next command timeout set.")
+			frame.Browser.Log.Print("Next command timeout set.")
 		}
 	}
 }

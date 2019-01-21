@@ -1,6 +1,8 @@
 package cdp
 
 import (
+	"log"
+	"os"
 	"testing"
 
 	"github.com/gorilla/websocket"
@@ -10,7 +12,8 @@ func TestShutdown(t *testing.T) {
 	srv := Serve()
 	defer ServerClose(srv)
 
-	c := GetWebsocket(8080)
+	lg := log.New(os.Stderr, "", log.LstdFlags)
+	c := GetWebsocket(lg, 8080)
 
 	// Direct use of the connection to see that data is sent/received.
 	err := c.WriteMessage(websocket.TextMessage, []byte("hello"))
@@ -24,7 +27,8 @@ func TestShutdown(t *testing.T) {
 	if string(message) != "hello" {
 		t.Fatal("expecting hello message")
 	}
-	SendClose(c)
+
+	SendClose(lg, c)
 
 	_, _, err = c.ReadMessage()
 	if err == nil {

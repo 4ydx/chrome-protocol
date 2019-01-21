@@ -26,16 +26,17 @@ func TestFill(t *testing.T) {
 	}
 
 	// Fill
-	if err := Fill(frame, "#lst-ib", "testing", time.Second*5); err != nil {
+	if err := Fill(frame, "/html/body/div/div[3]/form/div[2]/div/div[1]/div/div[1]/input", "testing", time.Second*5); err != nil {
 		t.Fatal(err)
 	}
 
 	// Run Script
-	script := "document.getElementById('lst-ib').value"
+	script := "document.getElementsByClassName('gLFyf')[0].value"
 	reply, err := Evaluate(frame, script, time.Second*5)
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Logf("%+v", reply.Result)
 	if string(*reply.Result.Value) != "\"testing\"" {
 		t.Fatalf("Expecting \"testing\" but got %s", *reply.Result.Value)
 	}

@@ -5,7 +5,6 @@ import (
 	"github.com/4ydx/cdp/protocol/dom"
 	"github.com/4ydx/cdp/protocol/input"
 	"github.com/4ydx/chrome-protocol"
-	"log"
 	"time"
 )
 
@@ -13,7 +12,7 @@ import (
 func GetEntireDocument(frame *cdp.Frame, timeout time.Duration) (*dom.GetFlattenedDocumentReply, error) {
 	frameDOM := frame.GetDOM()
 	if frameDOM != nil && len(frameDOM.Nodes) > 0 {
-		log.Print("Using cached Frame DOM.")
+		frame.Browser.Log.Print("Using cached Frame DOM.")
 		return frameDOM, nil
 	}
 	a0 := cdp.NewAction(
@@ -23,7 +22,7 @@ func GetEntireDocument(frame *cdp.Frame, timeout time.Duration) (*dom.GetFlatten
 		})
 	err := a0.Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return nil, err
 	}
 	frame.SetDOM(a0.Commands[0].Reply.(*dom.GetFlattenedDocumentReply))
@@ -37,7 +36,7 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 
 	doc, err := GetEntireDocument(frame, timeout)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return found, err
 	}
 
@@ -49,18 +48,18 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 		})
 	err = a0.Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return found, err
 	}
 	ret := a0.Commands[0].Reply.(*dom.PerformSearchReply)
 	if ret.SearchID == "" {
 		err := errors.New("unexpected empty search id")
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return found, err
 	}
 	if ret.ResultCount == 0 {
 		err := errors.New("no nodes found")
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return found, err
 	}
 
@@ -77,7 +76,7 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 		})
 	err = a1.Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return found, err
 	}
 
@@ -97,12 +96,12 @@ func FindAll(frame *cdp.Frame, find string, timeout time.Duration) ([]dom.Node, 
 func FindFirstElementNodeID(frame *cdp.Frame, find string, timeout time.Duration) (dom.NodeID, error) {
 	nodes, err := FindAll(frame, find, timeout)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return 0, err
 	}
 	if len(nodes) == 0 {
 		err := errors.New("no element found")
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return 0, err
 	}
 	target := dom.NodeID(0)
@@ -115,7 +114,7 @@ func FindFirstElementNodeID(frame *cdp.Frame, find string, timeout time.Duration
 	}
 	if target == 0 {
 		err := errors.New("no element (NodeType 1) found within matching nodes")
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return 0, err
 	}
 	return target, nil
@@ -125,7 +124,7 @@ func FindFirstElementNodeID(frame *cdp.Frame, find string, timeout time.Duration
 func Focus(frame *cdp.Frame, find string, timeout time.Duration) error {
 	target, err := FindFirstElementNodeID(frame, find, timeout)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return err
 	}
 	err = cdp.NewAction(
@@ -134,7 +133,7 @@ func Focus(frame *cdp.Frame, find string, timeout time.Duration) error {
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMFocus, Params: &dom.FocusArgs{NodeID: target}, Reply: &dom.FocusReply{}, Timeout: timeout},
 		}).Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return err
 	}
 	return nil
@@ -151,7 +150,7 @@ func Click(frame *cdp.Frame, find string, events []cdp.Event, timeout time.Durat
 func ClickWithModifiers(frame *cdp.Frame, find string, modifiers int, events []cdp.Event, timeout time.Duration) ([]cdp.Event, error) {
 	target, err := FindFirstElementNodeID(frame, find, timeout)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return events, err
 	}
 	return ClickNodeID(frame, target, modifiers, events, timeout)
@@ -166,7 +165,7 @@ func ClickNodeID(frame *cdp.Frame, nodeID dom.NodeID, modifiers int, events []cd
 		})
 	err := a0.Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return events, err
 	}
 
@@ -199,7 +198,7 @@ func ClickNodeID(frame *cdp.Frame, nodeID dom.NodeID, modifiers int, events []cd
 			}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
 		}).Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return events, err
 	}
 	return events, nil
@@ -216,7 +215,7 @@ func Children(frame *cdp.Frame, nodeID dom.NodeID, timeout time.Duration) error 
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMRequestChildNodes, Params: &dom.RequestChildNodesArgs{NodeID: nodeID, Depth: -1}, Reply: &dom.RequestChildNodesReply{}, Timeout: timeout},
 		}).Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return err
 	}
 	return nil
@@ -230,7 +229,7 @@ func SetAttributeValue(frame *cdp.Frame, nodeID dom.NodeID, name, value string, 
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: dom.CommandDOMSetAttributeValue, Params: &dom.SetAttributeValueArgs{NodeID: nodeID, Name: name, Value: value}, Reply: &dom.SetAttributeValueReply{}, Timeout: timeout},
 		}).Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return err
 	}
 	return nil

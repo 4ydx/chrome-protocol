@@ -14,10 +14,10 @@ import (
 )
 
 // GetWebsocket returns a websocket connection to the running browser.
-func GetWebsocket(port int) *websocket.Conn {
+func GetWebsocket(lg *log.Logger, port int) *websocket.Conn {
 	r, err := http.Get(fmt.Sprintf("http://localhost:%d/json", port))
 	if err != nil {
-		log.Fatal(err)
+		lg.Fatal(err)
 	}
 	defer func() {
 		err := r.Body.Close()
@@ -28,12 +28,12 @@ func GetWebsocket(port int) *websocket.Conn {
 
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Fatal(err)
+		lg.Fatal(err)
 	}
 	var inter interface{}
 	err = json.Unmarshal(b, &inter)
 	if err != nil {
-		log.Fatal(err)
+		lg.Fatal(err)
 	}
 
 	ws := ""
@@ -47,11 +47,11 @@ func GetWebsocket(port int) *websocket.Conn {
 		}
 	}
 	if ws == "" {
-		log.Fatal("No websocket url found.")
+		lg.Fatal("No websocket url found.")
 	}
 	c, _, err := websocket.DefaultDialer.Dial(ws, nil)
 	if err != nil {
-		log.Fatal(err)
+		lg.Fatal(err)
 	}
 	return c
 }
@@ -71,19 +71,19 @@ func Read(frame *Frame) {
 	for {
 		_, message, err := frame.Conn.ReadMessage()
 		if err != nil {
-			log.Println("Read error:", err)
+			frame.Browser.Log.Println("Read error:", err)
 			return
 		}
 		if frame.LogLevel > LogBasic {
-			log.Printf(".RAW: %s\n", message)
+			frame.Browser.Log.Printf(".RAW: %s\n", message)
 		}
 
 		m := Message{}
 		err = json.Unmarshal(message, &m)
 		if err != nil {
-			log.Fatal("Unmarshal error:", err)
+			frame.Browser.Log.Fatal("Unmarshal error:", err)
 		}
-		// log.Printf(".DEC: %+v\n", m)
+		// frame.Browser.Log.Printf(".DEC: %+v\n", m)
 
 		hasCommand, hasEvent := false, false
 		if hasCommand = frame.HasCommandID(m.ID); hasCommand {
@@ -98,22 +98,22 @@ func Read(frame *Frame) {
 			// Check and then set Events related to the current Action.
 			err = frame.SetEvent(frame, m.Method, m)
 			if err != nil {
-				log.Fatal(err)
+				frame.Browser.Log.Fatal(err)
 			}
 		}
 
 		// If matched a command or an event, then this message is fully processed.
 		if hasCommand || hasEvent {
 			if frame.IsComplete() {
-				log.Printf("Action Completed %s %s", frame.GetCommandMethod(), frame.GetFrameID())
+				frame.Browser.Log.Printf("Action Completed %s %s", frame.GetCommandMethod(), frame.GetFrameID())
 				frame.Clear()
 				frame.CacheCompleteChan <- struct{}{}
 			} else if !frame.IsCommandComplete() {
-				log.Printf("Action Next Command %s %s", frame.GetCommandMethod(), frame.GetFrameID())
+				frame.Browser.Log.Printf("Action Next Command %s %s", frame.GetCommandMethod(), frame.GetFrameID())
 				frame.ActionChan <- frame.ToJSON()
 				frame.CommandChan <- frame.CommandTimeout()
 			} else {
-				log.Printf("Action Event Waiting %s %s", frame.GetCommandMethod(), frame.GetFrameID())
+				frame.Browser.Log.Printf("Action Event Waiting %s %s", frame.GetCommandMethod(), frame.GetFrameID())
 			}
 			continue
 		}
@@ -124,22 +124,22 @@ func Read(frame *Frame) {
 			if len(m.Result) > 0 {
 				err := e.UnmarshalJSON(m.Result)
 				if err != nil {
-					log.Fatal("Unmarshal error:", err, m.Result)
+					frame.Browser.Log.Fatal("Unmarshal error:", err, m.Result)
 				}
 			}
 			if len(m.Params) > 0 {
 				err := e.UnmarshalJSON(m.Params)
 				if err != nil {
-					log.Fatal("Unmarshal error:", err, m.Params)
+					frame.Browser.Log.Fatal("Unmarshal error:", err, m.Params)
 				}
 			}
 			if frame.LogLevel > LogBasic {
-				log.Printf(".GOT event %+v\n", e)
+				frame.Browser.Log.Printf(".GOT event %+v\n", e)
 			}
 			UpdateDOMEvent(frame, m.Method, e)
 		} else {
 			if frame.LogLevel > LogBasic {
-				log.Printf(".SKP event %s %s %s\n", m.Method, m.Params, m.Result)
+				frame.Browser.Log.Printf(".SKP event %s %s %s\n", m.Method, m.Params, m.Result)
 			}
 		}
 	}
@@ -153,27 +153,27 @@ func Write(frame *Frame) {
 	for {
 		select {
 		case command := <-frame.ActionChan:
-			log.Printf("!REQ: %s\n", command)
+			frame.Browser.Log.Printf("!REQ: %s\n", command)
 			err := frame.Conn.WriteMessage(websocket.TextMessage, command)
 			if err != nil {
-				log.Println("write:", err)
+				frame.Browser.Log.Println("write:", err)
 				return
 			}
 		case <-frame.AllComplete:
-			SendClose(frame.Conn)
+			SendClose(frame.Browser.Log, frame.Conn)
 			return
 		case <-osInterrupt:
-			SendClose(frame.Conn)
+			SendClose(frame.Browser.Log, frame.Conn)
 			return
 		}
 	}
 }
 
 // SendClose closes the websocket.
-func SendClose(c *websocket.Conn) {
+func SendClose(lg *log.Logger, c *websocket.Conn) {
 	// Cleanly close the connection by sending a close message and then waiting (with timeout) for the server to close the connection.
 	err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 	if err != nil {
-		log.Println("write close err:", err)
+		lg.Println("write close err:", err)
 	}
 }

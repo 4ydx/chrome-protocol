@@ -4,7 +4,6 @@ import (
 	"github.com/4ydx/cdp/protocol"
 	"github.com/4ydx/cdp/protocol/runtime"
 	"github.com/4ydx/chrome-protocol"
-	"log"
 	"time"
 )
 
@@ -17,7 +16,7 @@ func Evaluate(frame *cdp.Frame, expression string, timeout time.Duration) (*runt
 		})
 	err := action.Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return nil, err
 	}
 	return action.Commands[0].Reply.(*runtime.EvaluateReply), nil
@@ -37,7 +36,7 @@ func GetProperties(frame *cdp.Frame, objectID shared.RemoteObjectID, ownProperti
 		})
 	err := action.Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return nil, err
 	}
 	return action.Commands[0].Reply.(*runtime.GetPropertiesReply), nil

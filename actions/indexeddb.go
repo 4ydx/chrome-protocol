@@ -3,7 +3,6 @@ package actions
 import (
 	"github.com/4ydx/cdp/protocol/indexeddb"
 	"github.com/4ydx/chrome-protocol"
-	"log"
 	"time"
 )
 
@@ -16,7 +15,7 @@ func RequestDatabaseNames(frame *cdp.Frame, securityOrigin string, timeout time.
 		})
 	err := action.Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return nil, err
 	}
 	return action.Commands[0].Reply.(*indexeddb.RequestDatabaseNamesReply), nil
@@ -31,7 +30,7 @@ func RequestDatabase(frame *cdp.Frame, securityOrigin, databaseName string, time
 		})
 	err := action.Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return nil, err
 	}
 	return action.Commands[0].Reply.(*indexeddb.RequestDatabaseReply), nil
@@ -55,7 +54,7 @@ func RequestData(frame *cdp.Frame, securityOrigin, databaseName, objectStoreName
 		})
 	err := action.Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return nil, err
 	}
 	return action.Commands[0].Reply.(*indexeddb.RequestDataReply), nil

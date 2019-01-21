@@ -129,7 +129,7 @@ func TestDOMClearedWhenEventNotSpecified(t *testing.T) {
 	}
 	events = append(events, GetNavigationEvents()...)
 
-	events, err := Click(frame, "gb_70", events, time.Second*5)
+	events, err := Click(frame, "gb_70", events, time.Second*10)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -8,7 +8,6 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -46,11 +45,11 @@ func Navigate(frame *cdp.Frame, url string, timeout time.Duration) ([]cdp.Event,
 		})
 	err := action.Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 	}
 	if action.Commands[0].Reply.(*page.NavigateReply).ErrorText != "" {
 		err := action.Commands[0].Reply.(*page.NavigateReply).ErrorText
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return events, errors.New(err)
 	}
 	return events, err
@@ -73,7 +72,7 @@ func Screenshot(frame *cdp.Frame, destination, format string, quality int, clip 
 			})
 	}
 	if err = action.Run(frame); err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return err
 	}
 
@@ -81,7 +80,7 @@ func Screenshot(frame *cdp.Frame, destination, format string, quality int, clip 
 	src := action.Commands[0].Reply.(*page.CaptureScreenshotReply).Data
 	m, _, err := image.Decode(bytes.NewReader(src))
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return err
 	}
 
@@ -91,7 +90,7 @@ func Screenshot(frame *cdp.Frame, destination, format string, quality int, clip 
 	}
 	f, err := os.Create(destination)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return err
 	}
 	defer func() {

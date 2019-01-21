@@ -3,7 +3,6 @@ package actions
 import (
 	"github.com/4ydx/cdp/protocol/network"
 	"github.com/4ydx/chrome-protocol"
-	"log"
 	"net/http"
 	"time"
 )
@@ -17,7 +16,7 @@ func Cookies(frame *cdp.Frame, timeout time.Duration) ([]network.Cookie, error) 
 		})
 	err := action.Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 	}
 	return action.Commands[0].Reply.(*network.GetAllCookiesReply).Cookies, err
 }
@@ -42,7 +41,7 @@ func SetCookie(frame *cdp.Frame, url string, cookie *http.Cookie, timeout time.D
 		})
 	err := action.Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 	}
 	return action.Commands[0].Reply.(*network.SetCookieReply).Success, err
 }

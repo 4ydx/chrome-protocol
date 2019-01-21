@@ -5,7 +5,6 @@ import (
 	"github.com/4ydx/cdp/protocol/css"
 	"github.com/4ydx/cdp/protocol/dom"
 	"github.com/4ydx/chrome-protocol"
-	"log"
 	"time"
 )
 
@@ -18,7 +17,7 @@ func GetComputedStyleForNode(frame *cdp.Frame, nodeID dom.NodeID, timeout time.D
 		})
 	err := action.Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return nil, err
 	}
 	return action.Commands[0].Reply.(*css.GetComputedStyleForNodeReply), nil
@@ -29,18 +28,18 @@ func GetComputedStyleForNode(frame *cdp.Frame, nodeID dom.NodeID, timeout time.D
 func WaitForComputedStyle(frame *cdp.Frame, find, cssPropery, cssValue string, timeout time.Duration) error {
 	nodeID, err := FindFirstElementNodeID(frame, find, timeout)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return err
 	}
 	until := time.Now().Add(timeout)
 	for {
 		if time.Now().After(until) {
-			log.Print("timeout")
+			frame.Browser.Log.Print("timeout")
 			return fmt.Errorf("timeout")
 		}
 		style, err := GetComputedStyleForNode(frame, nodeID, timeout)
 		if err != nil {
-			log.Print(err)
+			frame.Browser.Log.Print(err)
 			return err
 		}
 		match := false

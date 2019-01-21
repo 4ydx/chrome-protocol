@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/4ydx/cdp/protocol/dom"
 	"github.com/gorilla/websocket"
-	"log"
 	"os"
 	"sync"
 	"time"
@@ -39,10 +38,10 @@ type Frame struct {
 	// CurrentAction stores the Action that is currently active.
 	CurrentAction *Action
 
-	// LogFile is the file that all log output will be written to.
+	// LogFile is the file that all f.Browser.Log output will be written to.
 	LogFile *os.File
 
-	// LogLevel specifies how much information should be logged. Higher number results in more data.
+	// LogLevel specifies how much information should be f.Browser.Logged. Higher number results in more data.
 	LogLevel LogLevelValue
 }
 
@@ -216,20 +215,20 @@ func (f *Frame) toJSON() []byte {
 
 	j, err := json.Marshal(s)
 	if err != nil {
-		log.Fatal(err)
+		f.Browser.Log.Fatal(err)
 	}
 	return j
 }
 
-// Log writes the current state of the action to the log.
+// Log writes the current state of the action to the f.Browser.Log.
 func (f *Frame) Log() {
 	f.RLock()
 	defer f.RUnlock()
 
-	log.Printf("Frame %+v\n", f.CurrentAction)
+	f.Browser.Log.Printf("Frame %+v\n", f.CurrentAction)
 	for i, command := range f.CurrentAction.Commands {
-		log.Printf("%d Command %d Params %+v", i, command.ID, command.Params)
-		log.Printf("%d Command %d Return %+v", i, command.ID, command.Reply)
+		f.Browser.Log.Printf("%d Command %d Params %+v", i, command.ID, command.Params)
+		f.Browser.Log.Printf("%d Command %d Return %+v", i, command.ID, command.Reply)
 	}
 }
 
@@ -272,17 +271,17 @@ func (f *Frame) SetEvent(frame *Frame, name string, m Message) error {
 	// Attempt to compare the incoming Event's frameID value with the existing value.
 	if e, ok := f.CurrentAction.Events[name]; ok {
 		if frame.FrameID == "" {
-			log.Println(".ERR FrameID is empty during event processing.")
+			f.Browser.Log.Println(".ERR FrameID is empty during event processing.")
 			if len(m.Params) > 0 {
 				err := e.Value.UnmarshalJSON(m.Params)
 				if err != nil {
-					log.Printf("Unmarshal params error: %s; for %+v; from %+v", err.Error(), e.Value, m.Params)
+					f.Browser.Log.Printf("Unmarshal params error: %s; for %+v; from %+v", err.Error(), e.Value, m.Params)
 					return err
 				}
 			} else {
 				err := e.Value.UnmarshalJSON(m.Result)
 				if err != nil {
-					log.Printf("Unmarshal result error: %s; for %+v; from %+v", err.Error(), e.Value, m.Result)
+					f.Browser.Log.Printf("Unmarshal result error: %s; for %+v; from %+v", err.Error(), e.Value, m.Result)
 					return err
 				}
 			}
@@ -290,20 +289,20 @@ func (f *Frame) SetEvent(frame *Frame, name string, m Message) error {
 			if len(m.Params) > 0 {
 				if ok, err := e.Value.MatchFrameID(frame.FrameID, m.Params); !ok {
 					if err != nil {
-						log.Printf("Unmarshal error: %s", err)
+						f.Browser.Log.Printf("Unmarshal error: %s", err)
 						return err
 					}
 					// When the frameID does not match, it is definitely not intended for the current Frame.
-					log.Printf("No matching frameID %s %s", m.Method, m.Params)
+					f.Browser.Log.Printf("No matching frameID %s %s", m.Method, m.Params)
 					return nil
 				}
 			} else {
 				if ok, err := e.Value.MatchFrameID(frame.FrameID, m.Result); !ok {
 					if err != nil {
-						log.Printf("Unmarshal error: %s", err)
+						f.Browser.Log.Printf("Unmarshal error: %s", err)
 						return err
 					}
-					log.Printf("No matching frameID %s %s", m.Method, m.Result)
+					f.Browser.Log.Printf("No matching frameID %s %s", m.Method, m.Result)
 					return nil
 				}
 			}
@@ -313,10 +312,10 @@ func (f *Frame) SetEvent(frame *Frame, name string, m Message) error {
 		e.IsFound = true
 		f.CurrentAction.Events[string(name)] = e
 
-		log.Printf(".EVT: %s %+v\n", name, m)
+		f.Browser.Log.Printf(".EVT: %s %+v\n", name, m)
 		if frame.LogLevel >= LogDetails {
-			log.Printf("    : %+v\n", e)
-			log.Printf("    : %+v\n", e.Value)
+			f.Browser.Log.Printf("    : %+v\n", e)
+			f.Browser.Log.Printf("    : %+v\n", e.Value)
 		}
 	}
 	return nil
@@ -331,27 +330,27 @@ func (f *Frame) SetResult(frame *Frame, m Message) error {
 	if frame.FrameID == "" {
 		err := s.Reply.UnmarshalJSON(m.Result)
 		if err != nil {
-			log.Printf("Unmarshal error: %s", err)
+			f.Browser.Log.Printf("Unmarshal error: %s", err)
 			return err
 		}
 		frame.FrameID = s.Reply.GetFrameID()
 	} else {
 		if ok, err := s.Reply.MatchFrameID(frame.FrameID, m.Result); !ok {
 			if err != nil {
-				log.Printf("Unmarshal error: %s", err)
+				f.Browser.Log.Printf("Unmarshal error: %s", err)
 				return err
 			} else {
-				log.Printf("No matching frameID")
+				f.Browser.Log.Printf("No matching frameID")
 				return nil
 			}
 		}
 	}
 	f.CurrentAction.CommandIndex++
 
-	log.Printf(".STP COMPLETE: %+v\n", s)
+	f.Browser.Log.Printf(".STP COMPLETE: %+v\n", s)
 	if frame.LogLevel >= LogDetails {
-		log.Printf("             : %+v\n", s.Params)
-		log.Printf("             : %+v\n", s.Reply)
+		f.Browser.Log.Printf("             : %+v\n", s.Params)
+		f.Browser.Log.Printf("             : %+v\n", s.Reply)
 	}
 	return nil
 }

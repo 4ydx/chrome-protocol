@@ -4,7 +4,6 @@ import (
 	"github.com/4ydx/cdp/protocol/dom"
 	"github.com/4ydx/cdp/protocol/input"
 	"github.com/4ydx/chrome-protocol"
-	"log"
 	"time"
 )
 
@@ -41,7 +40,7 @@ func Fill(frame *cdp.Frame, find, fill string, timeout time.Duration) error {
 				cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchKeyEvent, Params: &input.DispatchKeyEventArgs{Type: "char", Text: string(key)}, Reply: &input.DispatchKeyEventReply{}, Timeout: timeout},
 			}).Run(frame)
 		if err != nil {
-			log.Print(err)
+			frame.Browser.Log.Print(err)
 			return err
 		}
 	}
@@ -70,7 +69,7 @@ func KeyDown(frame *cdp.Frame, modifiers int, timeout time.Duration) error {
 			}, Reply: &input.DispatchKeyEventReply{}, Timeout: timeout},
 		}).Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return err
 	}
 	return nil
@@ -80,7 +79,7 @@ func KeyDown(frame *cdp.Frame, modifiers int, timeout time.Duration) error {
 func MouseScroll(frame *cdp.Frame, deltaX, deltaY float64, timeout time.Duration) error {
 	nodes, err := FindAll(frame, "body", timeout)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return err
 	}
 	nodeID := dom.NodeID(0)
@@ -96,7 +95,7 @@ func MouseScroll(frame *cdp.Frame, deltaX, deltaY float64, timeout time.Duration
 		})
 	err = a0.Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return err
 	}
 
@@ -128,7 +127,7 @@ func MouseScroll(frame *cdp.Frame, deltaX, deltaY float64, timeout time.Duration
 			}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
 		}).Run(frame)
 	if err != nil {
-		log.Print(err)
+		frame.Browser.Log.Print(err)
 		return err
 	}
 	return nil
