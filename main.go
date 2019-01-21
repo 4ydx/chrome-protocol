@@ -43,7 +43,7 @@ func Start(browser *Browser, logLevel LogLevelValue) *Frame {
 			Value:   11111,
 		},
 		Browser:           browser,
-		Conn:              GetWebsocket(browser.Log, browser.Port),
+		Conn:              GetWebsocket(browser.Log, port),
 		CurrentAction:     &Action{},
 		CacheCompleteChan: make(chan struct{}),
 		ActionChan:        make(chan []byte),
