@@ -114,11 +114,11 @@ func (b *Browser) Stop() {
 	if b.TempDir != "" {
 		err := os.RemoveAll(b.TempDir)
 		if err != nil {
-			panic(err)
+			log.Printf("error: %s", err)
 		}
 	}
 	err = b.LogFile.Close()
 	if err != nil {
-		panic(err)
+		log.Printf("error: %s", err)
 	}
 }
