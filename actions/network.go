@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"github.com/4ydx/cdp/protocol"
 	"github.com/4ydx/cdp/protocol/network"
 	"github.com/4ydx/chrome-protocol"
 	"net/http"
@@ -23,7 +24,7 @@ func Cookies(frame *cdp.Frame, timeout time.Duration) ([]network.Cookie, error) 
 
 // SetCookie sets one cookie in the browser.
 func SetCookie(frame *cdp.Frame, url string, cookie *http.Cookie, timeout time.Duration) (bool, error) {
-	tse := network.TimeSinceEpoch(float64(cookie.Expires.Unix()))
+	tse := shared.TimeSinceEpoch(float64(cookie.Expires.Unix()))
 	params := &network.SetCookieArgs{
 		URL:      url,
 		Name:     cookie.Name,

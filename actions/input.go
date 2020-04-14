@@ -113,13 +113,14 @@ func MouseScroll(frame *cdp.Frame, deltaX, deltaY float64, timeout time.Duration
 	if deltaY == 0 {
 		deltaY = 0.000001
 	}
+	middle := input.MouseButtonMiddle
 	err = cdp.NewAction(
 		[]cdp.Event{},
 		[]cdp.Command{
 			cdp.Command{ID: frame.RequestID.GetNext(), Method: input.CommandInputDispatchMouseEvent, Params: &input.DispatchMouseEventArgs{
 				X:          xMid,
 				Y:          yMid,
-				Button:     "middle",
+				Button:     &middle,
 				ClickCount: 1,
 				Type:       "mouseWheel",
 				DeltaX:     deltaX,

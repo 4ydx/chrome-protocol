@@ -26,7 +26,7 @@ func TestFill(t *testing.T) {
 	}
 
 	// Fill
-	if err := Fill(frame, "/html/body/div/div[3]/form/div[2]/div/div[1]/div/div[1]/input", "testing", time.Second*5); err != nil {
+	if err := Fill(frame, "#tsf > div:nth-child(2) > div.A8SBwf > div.RNNXgb > div > div.a4bIc > input", "testing", time.Second*5); err != nil {
 		t.Fatal(err)
 	}
 

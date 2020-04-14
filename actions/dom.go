@@ -177,6 +177,7 @@ func ClickNodeID(frame *cdp.Frame, nodeID dom.NodeID, modifiers int, events []cd
 	yMid := (box[5]-box[1])/2 + box[1]
 
 	// Mouse click.
+	left := input.MouseButtonLeft
 	err = cdp.NewAction(
 		events,
 		[]cdp.Command{
@@ -184,7 +185,7 @@ func ClickNodeID(frame *cdp.Frame, nodeID dom.NodeID, modifiers int, events []cd
 				Modifiers:  modifiers,
 				X:          xMid,
 				Y:          yMid,
-				Button:     "left",
+				Button:     &left,
 				ClickCount: 1,
 				Type:       "mousePressed",
 			}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
@@ -192,7 +193,7 @@ func ClickNodeID(frame *cdp.Frame, nodeID dom.NodeID, modifiers int, events []cd
 				Modifiers:  modifiers,
 				X:          xMid,
 				Y:          yMid,
-				Button:     "left",
+				Button:     &left,
 				ClickCount: 1,
 				Type:       "mouseReleased",
 			}, Reply: &input.DispatchMouseEventReply{}, Timeout: timeout},
