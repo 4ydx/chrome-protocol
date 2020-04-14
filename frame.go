@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/4ydx/cdp/protocol/dom"
 	"github.com/gorilla/websocket"
-	"os"
 	"sync"
 	"time"
 )
@@ -37,9 +36,6 @@ type Frame struct {
 
 	// CurrentAction stores the Action that is currently active.
 	CurrentAction *Action
-
-	// LogFile is the file that all f.Browser.Log output will be written to.
-	LogFile *os.File
 
 	// LogLevel specifies how much information should be f.Browser.Logged. Higher number results in more data.
 	LogLevel LogLevelValue

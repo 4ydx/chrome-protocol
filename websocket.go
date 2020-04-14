@@ -3,14 +3,15 @@ package cdp
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/4ydx/cdp/protocol/dom"
-	"github.com/4ydx/cdp/protocol/lib"
-	"github.com/gorilla/websocket"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+
+	"github.com/4ydx/cdp/protocol/dom"
+	"github.com/4ydx/cdp/protocol/lib"
+	"github.com/gorilla/websocket"
 )
 
 // GetWebsocket returns a websocket connection to the running browser.
@@ -83,7 +84,11 @@ func Read(frame *Frame) {
 		if err != nil {
 			frame.Browser.Log.Fatal("Unmarshal error:", err)
 		}
-		// frame.Browser.Log.Printf(".DEC: %+v\n", m)
+		//frame.Browser.Log.Printf(".DEC: %+v\n", m)
+
+		if m.Method == "Runtime.consoleAPICalled" {
+			frame.Browser.Console.Print(string(message))
+		}
 
 		hasCommand, hasEvent := false, false
 		if hasCommand = frame.HasCommandID(m.ID); hasCommand {

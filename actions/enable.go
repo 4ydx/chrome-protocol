@@ -47,6 +47,19 @@ func EnableDom(frame *cdp.Frame, timeout time.Duration) error {
 	return err
 }
 
+// EnableLog tells the server to send the log event values across the websocket.
+func EnableLog(frame *cdp.Frame, timeout time.Duration) error {
+	err := cdp.NewAction(
+		[]cdp.Event{},
+		[]cdp.Command{
+			cdp.Command{ID: frame.RequestID.GetNext(), Method: log.CommandLogEnable, Params: &log.EnableArgs{}, Reply: &log.EnableReply{}, Timeout: timeout},
+		}).Run(frame)
+	if err != nil {
+		frame.Browser.Log.Print(err)
+	}
+	return err
+}
+
 // EnablePage tells the server to send the page event values across the websocket.
 func EnablePage(frame *cdp.Frame, timeout time.Duration) error {
 	err := cdp.NewAction(

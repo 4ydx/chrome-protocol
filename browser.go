@@ -14,11 +14,13 @@ import (
 
 // Browser contains information required to stop an exec'd browser at a later point in time.
 type Browser struct {
-	Port    int
-	PID     int
-	TempDir string
-	LogFile *os.File
-	Log     *log.Logger
+	Port        int
+	PID         int
+	TempDir     string
+	LogFile     *os.File
+	Log         *log.Logger
+	ConsoleFile *os.File
+	Console     *log.Logger
 }
 
 // NewBrowser accepts the path to the browser's binary, the port, and any arguments that need to be passed to the binary.
@@ -31,6 +33,12 @@ func NewBrowser(path string, port int, logfile string, args ...string) *Browser 
 		panic(err)
 	}
 	b.Log = log.New(b.LogFile, "", log.Llongfile|log.LstdFlags|log.Lmicroseconds)
+
+	b.ConsoleFile, err = os.Create(logfile + ".console")
+	if err != nil {
+		panic(err)
+	}
+	b.Console = log.New(b.ConsoleFile, "", log.Lshortfile|log.LstdFlags)
 
 	b.Port = port
 
@@ -118,6 +126,10 @@ func (b *Browser) Stop() {
 		}
 	}
 	err = b.LogFile.Close()
+	if err != nil {
+		log.Printf("error: %s", err)
+	}
+	err = b.ConsoleFile.Close()
 	if err != nil {
 		log.Printf("error: %s", err)
 	}

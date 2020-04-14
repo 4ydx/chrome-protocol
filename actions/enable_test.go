@@ -18,6 +18,9 @@ func TestEnable(t *testing.T) {
 	if err := EnableDom(frame, time.Second*2); err != nil {
 		t.Fatal(err)
 	}
+	if err := EnableLog(frame, time.Second*2); err != nil {
+		t.Fatal(err)
+	}
 	if err := EnableRuntime(frame, time.Second*2); err != nil {
 		t.Fatal(err)
 	}
